@@ -1,0 +1,23 @@
+{
+  "name": "apex-api",
+  "version": "1.0.0",
+  "description": "API for Apex🚀",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "author": "Kayode Ogunmakinwa fror Werrey Inc",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "dotenv": "^9.0.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.12.7",
+    "nodemailer": "^6.6.0",
+    "nodemon": "^2.0.7"
+  }
+}
