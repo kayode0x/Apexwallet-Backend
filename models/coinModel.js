@@ -10,12 +10,15 @@ const coinSchema = new mongoose.Schema({
 		type: String,
 		enum: {
 			values: [
-				'BTC', //Bitcoin
-				'ETH', //Ethereum
-				'LTC', //Litecoin
-				'DOGE', //Dogecoin
-				'XRP', //Ripple
-				'USDT', //Tether
+				'bitcoin', //btc
+				'ethereum', //eth
+				'ethereum-classic', //etc
+				'litecoin', //ltc
+				'dogecoin', //doge
+				'ripple', //xrp
+				'tether', //usdt
+				'tron', //trx
+				'binancecoin', //bnb
 			],
 			message: '{VALUE} is not supported.',
 		},
@@ -24,13 +27,6 @@ const coinSchema = new mongoose.Schema({
 		type: Number,
 		required: true,
 		min: 0,
-	},
-	type: {
-		type: String,
-		enum: {
-			values: ['BUY', 'SELL'],
-			message: '{VALUE} is not supported.'
-		},
 	},
 });
 

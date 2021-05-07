@@ -33,7 +33,7 @@ router.post('/', Auth, async (req, res) => {
 
 router.get('/', Auth, async (req, res) => {
 	try {
-		const wallet = await Wallet.findOne({ user: req.user}).populate('user coins transactions');
+		const wallet = await Wallet.findOne({ user: req.user}).populate('user coins');
 		if(!wallet) return res.status(400).json({ message: 'No wallet found. Open a wallet to start trading 🚀' });
         res.send(wallet);
 	} catch (error) {

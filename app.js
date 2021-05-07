@@ -10,19 +10,21 @@ const mongoose = require('mongoose');
 //parse all json objects, cookies and use cors.
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
+app.use(cors({ credentials: true, origin: 'http://192.168.1.98:3000' }));
 
 
 //import routes
 const userRoute = require('./routes/userRoute');
 const walletRoute = require('./routes/walletRoute');
 const coinRoute = require('./routes/coinRoute');
+const authRoute = require('./routes/authRoute');
 
 
 //routes
 app.use('/api/v1/user', userRoute);
 app.use('/api/v1/wallet', walletRoute);
 app.use('/api/v1/coin', coinRoute);
+app.use('/api/v1/auth', authRoute);
 
 
 //api endpoint.
