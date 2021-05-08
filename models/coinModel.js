@@ -8,20 +8,7 @@ const coinSchema = new mongoose.Schema({
 	},
 	coin: {
 		type: String,
-		enum: {
-			values: [
-				'bitcoin', //btc
-				'ethereum', //eth
-				'ethereum-classic', //etc
-				'litecoin', //ltc
-				'dogecoin', //doge
-				'ripple', //xrp
-				'tether', //usdt
-				'tron', //trx
-				'binancecoin', //bnb
-			],
-			message: '{VALUE} is not supported.',
-		},
+		required: true,
 	},
 	balance: {
 		type: Number,

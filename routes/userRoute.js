@@ -6,7 +6,7 @@ const Auth = require('../auth/auth');
 router.get('/', Auth, async (req, res) => {
     try {
         const user = await User.findById(req.user).select('+wallet +email').populate('wallet');
-        res.status(200).send(user);
+        res.status(200).send({ message: user});
 
     } catch (error) {
         res.status(500).json({message: error.message});

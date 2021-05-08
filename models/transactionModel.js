@@ -14,12 +14,13 @@ const transactionSchema = new mongoose.Schema({
 		type: Number,
 		required: true,
 	},
+    value: {
+        type: Number,
+        required: true,
+    },
 	type: {
 		type: String,
-		enum: {
-			values: ['BUY', 'SELL'],
-			message: '{VALUE} is not supported.',
-		},
+		required: true,
 	},
 	recipient: {
 		type: String,

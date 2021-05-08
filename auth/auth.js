@@ -4,7 +4,7 @@ function Auth(req, res, next) {
 	try {
 		//first check if there is a cookie present
 		const token = req.cookies.jwt_token;
-		if (!token) return res.status(401).json({ message: 'Unauthorized' });
+		if (!token) return res.status(401).json({ message: 'Please log in' });
 
 		//if there is a cookie, verify it.
 		const verified = jwt.verify(token, process.env.JWT_SECRET);
@@ -13,7 +13,7 @@ function Auth(req, res, next) {
 		req.user = verified.user;
 		next(); //use this method to keep moving.
 	} catch (error) {
-		res.status(401).json({ message: 'Unauthorized' });
+		res.status(401).json({ message: 'Please log in' });
 	}
 }
 
