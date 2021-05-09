@@ -74,6 +74,8 @@ router.post('/', Auth, async (req, res) => {
 		//we have buy and sell coins, send and receive coming soon 🚀
 		if (type === 'buy') {
 			//if the coin is not in the wallet, create it.
+
+			//this is for when we support a new coin.
 			if (!coinExists) {
 				walletBalance = await Number(wallet.balance);
 				//prevent buying more coin(s) than what is in the wallet,
@@ -174,7 +176,7 @@ router.post('/', Auth, async (req, res) => {
 			await wallet.transactions.push(newTransaction);
 			await wallet.save();
 
-            return res.send(newTransaction);
+			return res.send(newTransaction);
 		} else if (type === 'sell') {
 			if (!coinExists) return res.status(400).json({ message: 'Can not sell a coin that you do not own' });
 			//prevent selling more coin(s) than what is in the coin balance
@@ -190,7 +192,7 @@ router.post('/', Auth, async (req, res) => {
 			//then convert the coin price to the crypto equivalent.
 			newAmount = (await Number(amount)) * newCoinPrice;
 
-            //deduct from the coin balance
+			//deduct from the coin balance
 			newCoinBalance = (await coinBalance) - Number(amount);
 
 			//add to the wallet
@@ -211,7 +213,7 @@ router.post('/', Auth, async (req, res) => {
 				coin: coin,
 				amount: amount,
 				type: type,
-                value: newAmount,
+				value: newAmount,
 			});
 
 			const newTransaction = await transaction.save();

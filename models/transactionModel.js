@@ -22,6 +22,9 @@ const transactionSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
+    sender: {
+        type: String,
+    },
 	recipient: {
 		type: String,
 	},
