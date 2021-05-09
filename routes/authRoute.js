@@ -55,7 +55,7 @@ router.post('/signup', async (req, res) => {
 
 		await newUser.save();
 
-        const apexURL = 'apexwallet.app';
+        const apexURL = 'apexx.netlify.app';
 
 		//send email verification link
 		const verificationURL = `http://${apexURL}/verify/${verificationToken}`;
@@ -191,7 +191,7 @@ router.post('/forgot-password', async (req, res) => {
 
 		await user.save();
 
-        const apexURL = 'apexwallet.app'
+        const apexURL = 'apexx.netlify.app'
 
 		const resetUrl = `http://${apexURL}/reset-password/${resetToken}`;
 
