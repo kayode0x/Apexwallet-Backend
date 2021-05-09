@@ -55,7 +55,7 @@ router.post('/signup', async (req, res) => {
 
 		await newUser.save();
 
-        const apexURL = 'apexx.netlify.app';
+        const apexURL = 'apexwallet.app';
 
 		//send email verification link
 		const verificationURL = `http://${apexURL}/verify/${verificationToken}`;
@@ -115,7 +115,7 @@ router.put('/verify/:verificationToken', async (req, res) => {
 			process.env.JWT_SECRET,
 			{ expiresIn: 86400 } //expires in 24 hours.
 		);
-		res.status(200).cookie('jwt_token', token, { httpOnly: true }, { sameSite: 'none', secure: true }).send();
+		res.status(200).cookie('jwt_token', token, { httpOnly: true }).send();
 	} catch (error) {
 		res.status(500).json({ message: error.message });
 	}
@@ -191,7 +191,7 @@ router.post('/forgot-password', async (req, res) => {
 
 		await user.save();
 
-        const apexURL = 'apexx.netlify.app'
+        const apexURL = 'apexwallet.app';
 
 		const resetUrl = `http://${apexURL}/reset-password/${resetToken}`;
 
