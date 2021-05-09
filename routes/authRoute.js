@@ -150,7 +150,7 @@ router.post('/login', async (req, res) => {
 			{ expiresIn: 86400 } //expires in 24 hours.
 		);
 		res.status(200)
-			.cookie('jwt_token', token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000, sameSite: 'none', secure: true })
+			.cookie('jwt_token', token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000, sameSite: 'none', secure: false })
 			.send();
 	} catch (error) {
 		res.status(500).json({ message: error.message });
