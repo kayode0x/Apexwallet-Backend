@@ -55,7 +55,7 @@ router.post('/signup', async (req, res) => {
 
 		await newUser.save();
 
-        const apexURL = 'apexwallet.app';
+        const apexURL = '192.168.1.98:3000';
 
 		//send email verification link
 		const verificationURL = `http://${apexURL}/verify/${verificationToken}`;
@@ -140,7 +140,6 @@ router.post('/login', async (req, res) => {
 			process.env.JWT_SECRET,
 			{ expiresIn: 86400 } //expires in 24 hours.
 		);
-        console.log(token);
 		res.status(200).cookie('jwt_token', token, { httpOnly: true }).send();
 	} catch (error) {
 		res.status(500).json({ message: error.message });
@@ -191,7 +190,7 @@ router.post('/forgot-password', async (req, res) => {
 
 		await user.save();
 
-        const apexURL = 'apexwallet.app';
+        const apexURL = '192.168.1.98:3000';
 
 		const resetUrl = `http://${apexURL}/reset-password/${resetToken}`;
 
