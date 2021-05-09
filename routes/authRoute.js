@@ -140,7 +140,8 @@ router.post('/login', async (req, res) => {
 			process.env.JWT_SECRET,
 			{ expiresIn: 86400 } //expires in 24 hours.
 		);
-		res.status(200).cookie('jwt_token', token, { httpOnly: true }, { sameSite: 'none', secure: true }).send();
+        console.log(token);
+		res.status(200).cookie('jwt_token', token, { httpOnly: true }).send();
 	} catch (error) {
 		res.status(500).json({ message: error.message });
 	}
