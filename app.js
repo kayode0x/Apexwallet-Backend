@@ -11,7 +11,7 @@ const mongoose = require('mongoose');
 app.use(express.json());
 app.use(cookieParser());
 const apexURL = 'apexwallet.app';
-app.use(cors({ credentials: true, origin: `${apexURL}` }));
+app.use(cors({ credentials: true, origin: 'https://apexx.netlify.app/' }));
 
 
 //import routes
