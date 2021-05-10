@@ -45,28 +45,28 @@ router.post('/', Auth, async (req, res) => {
 		const supportedTypes = ['buy', 'sell'];
 
 		//validate the inputs
-		if (!coin) return res.status(400).json({ message: 'Please pick a coin' });
+		if (!coin) return res.status(400).send('Please pick a coin');
 		const isCoinSupported = supportedCoins.includes(coin);
-		if (isCoinSupported === false) return res.status(400).json({ message: `We do not support currently ${coin}` });
+		if (isCoinSupported === false) return res.status(400).send(`We do not support currently ${coin}`);
 
-		if (!amount) return res.status(400).json({ message: `Select an amount worth of ${coin}` });
-		if (!type) return res.status(400).json({ message: 'Are you buying or selling?' });
+		if (!amount) return res.status(400).send(`Select an amount worth of ${coin}`);
+		if (!type) return res.status(400).send('Are you buying or selling?');
 		const isTypeSupported = supportedTypes.includes(type);
 		if (isTypeSupported === false)
-			return res.status(400).json({ message: 'We only support Buying and Selling coins for now.' });
+			return res.status(400).send('We only support Buying and Selling coins for now.');
 
 		//check if the user exists
 		const user = await User.findById(req.user).select('+wallet');
-		if (!user) return res.status(400).json({ message: 'User does not exist' });
+		if (!user) return res.status(400).send('User does not exist');
 
 		//only active users can buy coins
-		if (user.isActive === false) return res.status(400).json({ message: 'Verify your account to buy coins 🚀' });
+		if (user.isActive === false) return res.status(400).send('Verify your account to buy coins 🚀');
 		if (user.wallet === undefined && user.isActive === true) {
-			return res.json({ message: 'You can open a wallet now to start trading 🚀' });
+			return res.send('You can open a wallet now to start trading 🚀');
 		}
 		//check if the wallet exists
 		const wallet = await Wallet.findOne({ _id: user.wallet }).populate('coins');
-		if (!wallet) return res.status(400).json({ message: 'No wallet found. Open a wallet to start trading 🚀' });
+		if (!wallet) return res.status(400).send('No wallet found. Open a wallet to start trading 🚀');
 
 		//check if the coin is already in the wallet, to prevent doubling.
 		const coinExists = await Coin.findOne({ coin: coin });
@@ -80,11 +80,9 @@ router.post('/', Auth, async (req, res) => {
 				walletBalance = await Number(wallet.balance);
 				//prevent buying more coin(s) than what is in the wallet,
 				if (amount < 10)
-					return res
-						.status(400)
-						.json({ message: `${amount} is too low. You can only buy a minimum of 10 USD` });
+					return res.status(400).send(`${amount} is too low. You can only buy a minimum of 10 USD`);
 				if (Number(amount) > walletBalance)
-					return res.status(400).json({ message: `Can not buy more than ${walletBalance}` });
+					return res.status(400).send(`Can not buy more than ${walletBalance}`);
 
 				//get the current coin you are trying to buy's price
 				newCoinPrice = await getCoinPrice(coin);
@@ -133,11 +131,11 @@ router.post('/', Auth, async (req, res) => {
 			coinBalance = await Number(coinExists.balance);
 
 			if (amount < 10)
-				return res.status(400).json({ message: `${amount} is too low. You can only buy a minimum of 10 USD` });
+				return res.status(400).send(`${amount} is too low. You can only buy a minimum of 10 USD`);
 
 			//prevent buying more coin(s) than what is in the wallet,
 			if (Number(amount) > wallet.balance)
-				return res.status(400).json({ message: `Can not buy more than $${walletBalance}` });
+				return res.status(400).send(`Can not buy more than $${walletBalance}`);
 
 			//get the current coin you are trying to buy's price
 			newCoinPrice = await getCoinPrice(coin);
@@ -178,13 +176,13 @@ router.post('/', Auth, async (req, res) => {
 
 			return res.send(newTransaction);
 		} else if (type === 'sell') {
-			if (!coinExists) return res.status(400).json({ message: 'Can not sell a coin that you do not own' });
+			if (!coinExists) return res.status(400).send('Can not sell a coin that you do not own');
 			//prevent selling more coin(s) than what is in the coin balance
 			coinBalance = await Number(coinExists.balance);
 			walletBalance = await Number(wallet.balance);
 
 			if (Number(amount) > coinBalance)
-				return res.status(400).json({ message: `Can not sell more than ${coinBalance} ${coin}` });
+				return res.status(400).send(`Can not sell more than ${coinBalance} ${coin}`);
 
 			//get the current coin you are trying to buy's price
 			newCoinPrice = await getCoinPrice(coin);
@@ -223,7 +221,7 @@ router.post('/', Auth, async (req, res) => {
 			return res.send(newTransaction);
 		} //add send and receive here.
 	} catch (error) {
-		res.status(500).json({ message: error.message });
+		res.status(500).send(error.message);
 	}
 });
 
@@ -231,17 +229,17 @@ router.post('/', Auth, async (req, res) => {
 router.get('/', Auth, async (req, res) => {
 	try {
 		const user = await User.findById(req.user).select('+wallet');
-		if (!user) return res.status(400).json({ message: 'User not found' });
-		if (user.isActive === false) return res.status(400).json({ message: 'Verify your account to buy coins 🚀' });
+		if (!user) return res.status(400).send('User not found');
+		if (user.isActive === false) return res.status(400).send('Verify your account to buy coins 🚀');
 		if (user.wallet === undefined && user.isActive === true) {
-			return res.json({ message: 'You can open a wallet now to start trading 🚀' });
+			return res.send('You can open a wallet now to start trading 🚀');
 		}
 		const coin = await Coin.find({ wallet: user.wallet });
 		if (coin.length === 0 && user.isActive === true)
-			return res.status(200).json({ message: 'No coins yet.. Buy now 🚀' });
+			return res.status(200).send('No coins yet.. Buy now 🚀');
 		res.send(coin);
 	} catch (error) {
-		res.status(500).json({ message: error.message });
+		res.status(500).send(error.message);
 	}
 });
 

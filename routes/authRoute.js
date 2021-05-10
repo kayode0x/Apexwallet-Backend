@@ -13,29 +13,29 @@ router.post('/signup', async (req, res) => {
 		//first check if the required fields are present
 		const { username, email, password } = req.body;
 		if (!username || !email || !password)
-			return res.status(420).json({ message: 'Please fill in the required fields' });
+			return res.status(420).send('Please fill in the required fields');
 
 		//check if the email exists
 		const existingEmail = await User.findOne({ email: req.body.email });
-		if (existingEmail) return res.status(400).send({ message: 'The email address is already taken' });
+		if (existingEmail) return res.status(400).send('The email address is already taken');
 
 		//check if the username exists
 		const existingUsername = await User.findOne({ username: req.body.username });
-		if (existingUsername) return res.status(400).json({ message: 'The username is already taken' });
+		if (existingUsername) return res.status(400).send('The username is already taken');
 
 		//email regex
 		const matchesEmail = email.match(emailRegex);
-		if (!matchesEmail) return res.status(400).json({ message: 'Please provide a valid email address' });
+		if (!matchesEmail) return res.status(400).send('Please provide a valid email address');
 
 		//username regex
 		if (username.length < 2 || username.length > 20)
-			return res.status(400).json({ message: 'Username must be between 2 and 20 characters long' });
+			return res.status(400).send('Username must be between 2 and 20 characters long');
 		const matchesUsername = username.match(usernameRegex);
-		if (!matchesUsername) return res.status(400).json({ message: 'Please pick an alphabet only username.' });
+		if (!matchesUsername) return res.status(400).send('Please pick an alphabet only username.');
 
 		//password regex
 		if (password.length < 6)
-			return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+			return res.status(400).send('Password must be at least 6 characters long');
 
 		//save the user
 		const newUser = await new User({
@@ -47,24 +47,22 @@ router.post('/signup', async (req, res) => {
 		await newUser.save();
 
 		//sign user in automatically after signing up
-		const token = await jwt.sign({ user: newUser._id }, process.env.JWT_SECRET, {
-			expiresIn: '1d',
-		});
+		const token = await jwt.sign({ user: newUser._id }, process.env.JWT_SECRET);
 
 		const verificationToken = newUser.getVerifyEmailToken();
 
 		await newUser.save();
 
-		const apexURL = 'apexwallet.app';
+		const apexURL = 'http://localhost:3000';
 
 		//send email verification link
-		const verificationURL = `http://${apexURL}/verify/${verificationToken}`;
+		const verificationURL = `${apexURL}/verify?token=${verificationToken}`;
 
 		const message = `
             <p>Hi there ${req.body.username}!,</p>
             <p>We would like to welcome you on board.</p>
             <p>But before you do anything, it's required that you verify your email address just so we know it's you.</p>
-            <p>Click this <a href="${verificationURL}" clicktracking=off>link</a> to verify your account and start trading.</p>  
+            <a href="${verificationURL}" clicktracking=off>Verify Account</a>
             <p>Apex Team. 🚀</p>
         `;
 
@@ -77,7 +75,7 @@ router.post('/signup', async (req, res) => {
 
 			res.status(201)
 				.cookie('jwt_token', token, {
-					httpOnly: true
+					httpOnly: true,
 				})
 				.send();
 		} catch (error) {
@@ -85,24 +83,24 @@ router.post('/signup', async (req, res) => {
 
 			await newUser.save();
 
-			return res.status(500).json({ message: "Couldn't send the reset email" });
+			return res.status(500).send("Couldn't send the reset email");
 		}
 	} catch (error) {
 		console.log(error);
 		console.log(error.message);
-		res.status(500).json({ message: error.message });
+		res.status(500).send(error.message);
 	}
 });
 
 //verify the user's email address
-router.put('/verify/:verificationToken', async (req, res) => {
-	const verifyEmailToken = crypto.createHash('sha256').update(req.params.verificationToken).digest('hex');
+router.put('/verify', async (req, res) => {
+	const verifyEmailToken = await crypto.createHash('sha256').update(req.body.token).digest('hex');
 
 	try {
 		//find the user by the verification token
-		const user = await User.findOne({ verifyEmailToken: verifyEmailToken });
+		const user = await User.findOne({ verifyEmailToken: verifyEmailToken }).select('+verifyEmailToken');
 
-		if (!user) return res.status(404).json({ message: 'User not found' });
+		if (!user) return res.status(404).send("Couldn't verify your email address, please try again...")
 
 		//then change the user's status to active
 		user.isActive = true;
@@ -113,17 +111,9 @@ router.put('/verify/:verificationToken', async (req, res) => {
 		//finally save the user
 		await user.save();
 
-		//then sign and send the jwt token.
-		const token = await jwt.sign(
-			{ user: user._id },
-			process.env.JWT_SECRET,
-			{ expiresIn: 86400 } //expires in 24 hours.
-		);
-		res.status(200)
-			.cookie('jwt_token', token, { httpOnly: true })
-			.send();
+		res.status(200).send('Account verified 🚀')
 	} catch (error) {
-		res.status(500).json({ message: error.message });
+		res.status(500).send(error.message);
 	}
 });
 
@@ -131,26 +121,20 @@ router.put('/verify/:verificationToken', async (req, res) => {
 router.post('/login', async (req, res) => {
 	try {
 		const { email, password } = req.body;
-		if (!email || !password) return res.status(400).json({ message: 'Please fill in your email and password' });
+		if (!email || !password) return res.status(400).send('Please fill in your email and password');
 
 		//check if user exists
 		const user = await User.findOne({ email: email }).select('+password');
-		if (!user) return res.status(400).json({ message: 'Invalid credentials provided' });
+		if (!user) return res.status(400).send('Invalid credentials provided');
 
 		//check if the password matches
 		const correctPassword = await bcrypt.compare(password, user.password);
-		if (!correctPassword) return res.status(400).json({ message: 'Invalid credentials provided' });
+		if (!correctPassword) return res.status(400).send('Invalid credentials provided');
 
-		const token = await jwt.sign(
-			{ user: user._id },
-			process.env.JWT_SECRET,
-			{ expiresIn: 86400 } //expires in 24 hours.
-		);
-		res.status(200)
-			.cookie('jwt_token', token, { httpOnly: true})
-			.send();
+		const token = await jwt.sign({ user: user._id }, process.env.JWT_SECRET);
+		res.status(200).cookie('jwt_token', token, { httpOnly: true }).send();
 	} catch (error) {
-		res.status(500).json({ message: error.message });
+		res.status(500).send(error.message);
 	}
 });
 
@@ -159,13 +143,13 @@ router.get('/loggedin', (req, res) => {
 	try {
 		const token = req.cookies.jwt_token;
 		if (!token) {
-			return res.json(false);
+			return res.send(false);
 		}
 		//verify the token
 		jwt.verify(token, process.env.JWT_SECRET);
 		res.send(true);
 	} catch (err) {
-		res.json(false);
+		res.send(false);
 	}
 });
 
@@ -179,7 +163,7 @@ router.post('/logout', async (req, res) => {
 			})
 			.send();
 	} catch (error) {
-		res.status(500).json({ message: error.message });
+		res.status(500).send(error.message);
 	}
 });
 
@@ -187,25 +171,26 @@ router.post('/logout', async (req, res) => {
 router.post('/forgot-password', async (req, res) => {
 	const { email } = req.body;
 	try {
+
 		//check if an email is sent
-		if (!email) return res.status(400).json({ message: 'Please provide an email address' });
+		if (!email) return res.status(400).send('Please provide an email address');
 
 		//check if the user exists
 		const user = await User.findOne({ email: email }).select('+email');
-		if (!user) return res.status(400).json({ message: "Couldn't send the reset email. User not found.." });
+		if (!user) return res.status(400).send("Couldn't send the reset email. User not found..");
 
 		const resetToken = user.getResetPasswordToken();
 
 		await user.save();
 
-		const apexURL = 'apexwallet.app';
+		const apexURL = 'http://localhost:3000';
 
-		const resetUrl = `http://${apexURL}/reset-password/${resetToken}`;
+		const resetUrl = `${apexURL}/reset?token=${resetToken}`;
 
 		const message = `
             <p>Hi there,</p>
             <p>We heard you are having problems with your password.</p>
-            <p>Click this <a href="${resetUrl}" clicktracking=off>link</a> to reset your password</p>  
+            <p>Click this <a href="${resetUrl}" clicktracking=off>link</a> to reset your password, link expires in 10 minutes.</p>  
         `;
 
 		try {
@@ -215,42 +200,42 @@ router.post('/forgot-password', async (req, res) => {
 				text: message,
 			});
 
-			res.status(200).json({ message: 'Email sent successfully' });
+			res.status(200).send('Email sent successfully');
 		} catch (error) {
 			user.resetPasswordToken = undefined;
 			user.resetPasswordExpire = undefined;
 
 			await user.save();
 
-			return res.status(500).json({ message: "Couldn't send the reset email" });
+			return res.status(500).send("Couldn't send the reset email");
 		}
 	} catch (error) {
-		res.status(500).json({ message: error.message });
+		res.status(500).send(error.message);
 	}
 });
 
 //reset the password
-router.put('/reset-password/:resetToken', async (req, res) => {
-	const resetPasswordToken = crypto.createHash('sha256').update(req.params.resetToken).digest('hex');
-
+router.put('/reset-password/', async (req, res) => {
 	try {
+		const resetPasswordToken = crypto.createHash('sha256').update(req.body.token).digest('hex');
+
 		//find the user by the token
 		const user = await User.findOne({
 			resetPasswordToken: resetPasswordToken,
 			resetPasswordExpire: { $gt: Date.now() },
 		});
 
-		if (!user) return res.status(400).json({ message: 'Invalid reset token' }).select('+verifyEmailToken');
+		if (!user) return res.status(400).send('Invalid reset token');
 
 		const { password, confirmPassword } = req.body;
 
-		if (!confirmPassword || !password) return res.status(400).json({ message: 'Please fill in your password' });
+		if (!confirmPassword || !password) return res.status(400).send('Please fill in your password');
 
-		if (password.length < 6) return res.status(400).json({ message: 'Password must be at least 6 characters' });
+		if (password.length < 6) return res.status(400).send('Password must be at least 6 characters');
 		if (confirmPassword.length < 6)
-			return res.status(400).json({ message: 'Password must be at least 6 characters' });
+			return res.status(400).send({ message: 'Password must be at least 6 characters' });
 
-		if (confirmPassword !== password) return res.status(400).json({ message: 'Passwords do not match' });
+		if (confirmPassword !== password) return res.status(400).send('Passwords do not match');
 
 		const newPassword = bcrypt.hashSync(password, 10);
 
@@ -264,17 +249,9 @@ router.put('/reset-password/:resetToken', async (req, res) => {
 		//finally save the user
 		await user.save();
 
-		//then sign and send the jwt token.
-		const token = await jwt.sign(
-			{ user: user._id },
-			process.env.JWT_SECRET,
-			{ expiresIn: 86400 } //expires in 24 hours.
-		);
-		res.status(200)
-			.cookie('jwt_token', token, { httpOnly: true})
-			.send();
+		res.status(200).send("Password reset success. 🚀");
 	} catch (error) {
-		res.status(500).json({ message: error.message });
+		res.status(500).send(error.message);
 	}
 });
 

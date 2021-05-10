@@ -15,14 +15,14 @@ const CoinGeckoClient = new CoinGecko();
 router.post('/', Auth, async (req, res) => {
 	try {
 		const user = await User.findById(req.user);
-		if (!user) return res.status(400).json({ message: 'User does not exist' });
+		if (!user) return res.status(400).send('User does not exist');
 
 		if (user.isActive === false)
-			return res.status(400).json({ message: 'Verify your account to create a wallet 🚀' });
+			return res.status(400).send('Verify your account to create a wallet 🚀');
 
 		//check if the user already has a wallet
 		const wallet = await Wallet.findOne({ user: user._id });
-		if (wallet) return res.status(400).json({ message: 'User already has a wallet.' });
+		if (wallet) return res.status(400).send('You already have a wallet');
 
 		//create a new transaction based on the free cash
 		const transaction = await new Transaction({
@@ -61,7 +61,7 @@ router.post('/', Auth, async (req, res) => {
 				await userWallet.coins.push(savedCoin);
 				await userWallet.save();
 			} catch (error) {
-				res.status(500).json({ message: error.message });
+				res.status(500).send(error.message);
 			}
 		}
 
@@ -81,7 +81,7 @@ router.post('/', Auth, async (req, res) => {
 		//send the user because sending the new wallet isn't working...
 		res.status(201).send(newTransaction);
 	} catch (error) {
-		res.status(500).json({ message: error.message });
+		res.status(500).send(error.message );
 	}
 });
 
@@ -91,7 +91,7 @@ router.get('/', Auth, async (req, res) => {
 	try {
 		//find the logged in user
 		const user = await User.findById(req.user);
-		if (!user) return res.status(400).json({ message: 'Please log in' });
+		if (!user) return res.status(400).send("Please log in");
 
 		const wallet = await Wallet.findOne({ user: req.user })
 			.populate('user coins')
@@ -104,12 +104,12 @@ router.get('/', Auth, async (req, res) => {
 				},
 			});
 		if (!wallet && user.isActive === false)
-			return res.status(200).json({ message: 'Verify your email address to Open a wallet 🚀' });
+			return res.status(200).send('Verify your email address to Open a wallet 🚀' );
 		if (!wallet && user.isActive === true)
-			return res.status(200).json({ message: 'No wallet found. Open a wallet to start trading 🚀' });
+			return res.status(200).send('No wallet found. Open a wallet to start trading 🚀' );
 		res.send(wallet);
 	} catch (error) {
-		res.status(500).json({ message: error.message });
+		res.status(500).send(error.message);
 	}
 });
 
