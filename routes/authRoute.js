@@ -53,7 +53,7 @@ router.post('/signup', async (req, res) => {
 
 		await newUser.save();
 
-		const apexURL = 'http://localhost:3000';
+		const apexURL = 'https://apexwallet.app';
 
 		//send email verification link
 		const verificationURL = `${apexURL}/verify?token=${verificationToken}`;
@@ -183,7 +183,7 @@ router.post('/forgot-password', async (req, res) => {
 
 		await user.save();
 
-		const apexURL = 'http://localhost:3000';
+		const apexURL = 'https://apexwallet.app';
 
 		const resetUrl = `${apexURL}/reset?token=${resetToken}`;
 
