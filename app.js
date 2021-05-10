@@ -14,7 +14,12 @@ const apexURL = 'https://apexwallet.app';
 
 const corsOptions = {
 	//To allow requests from client
-	origin: ['https://apexwallet.app', 'http://192.168.1.98:3000', 'http://localhost:3000'],
+	origin: [
+		'https://apexwallet.app',
+		'https://apexx.netlify.app',
+		'http://192.168.1.98:3000',
+		'http://localhost:3000',
+	],
 	credentials: true,
 	exposedHeaders: ['set-cookie'],
 };
