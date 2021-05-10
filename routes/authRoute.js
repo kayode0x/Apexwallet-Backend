@@ -77,10 +77,7 @@ router.post('/signup', async (req, res) => {
 
 			res.status(201)
 				.cookie('jwt_token', token, {
-					httpOnly: true,
-					maxAge: 24 * 60 * 60 * 1000,
-					sameSite: 'none',
-					secure: true,
+					httpOnly: true
 				})
 				.send();
 		} catch (error) {
@@ -123,7 +120,7 @@ router.put('/verify/:verificationToken', async (req, res) => {
 			{ expiresIn: 86400 } //expires in 24 hours.
 		);
 		res.status(200)
-			.cookie('jwt_token', token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000, sameSite: 'none', secure: true })
+			.cookie('jwt_token', token, { httpOnly: true })
 			.send();
 	} catch (error) {
 		res.status(500).json({ message: error.message });
@@ -150,7 +147,7 @@ router.post('/login', async (req, res) => {
 			{ expiresIn: 86400 } //expires in 24 hours.
 		);
 		res.status(200)
-			.cookie('jwt_token', token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000, sameSite: 'none', secure: false })
+			.cookie('jwt_token', token, { httpOnly: true})
 			.send();
 	} catch (error) {
 		res.status(500).json({ message: error.message });
@@ -274,7 +271,7 @@ router.put('/reset-password/:resetToken', async (req, res) => {
 			{ expiresIn: 86400 } //expires in 24 hours.
 		);
 		res.status(200)
-			.cookie('jwt_token', token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000, sameSite: 'none', secure: true })
+			.cookie('jwt_token', token, { httpOnly: true})
 			.send();
 	} catch (error) {
 		res.status(500).json({ message: error.message });
