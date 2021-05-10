@@ -75,7 +75,7 @@ router.post('/signup', async (req, res) => {
 
 			res.status(201)
 				.cookie('jwt_token', token, {
-					httpOnly: true, path:'/', domain: 'https://apexwallet.app/', sameSite: 'none', secure: true
+					httpOnly: true, path:'/', domain: 'https://apexwallet.app', sameSite: 'none', secure: true
 				})
 				.send();
 		} catch (error) {
@@ -136,7 +136,7 @@ router.post('/login', async (req, res) => {
 			.cookie('jwt_token', token, {
 				httpOnly: true,
 				path: '/',
-				domain: 'https://apexwallet.app/',
+				domain: 'https://apexwallet.app',
 				sameSite: 'none',
 				secure: true,
 			})
