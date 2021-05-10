@@ -75,7 +75,7 @@ router.post('/signup', async (req, res) => {
 
 			res.status(201)
 				.cookie('jwt_token', token, {
-					httpOnly: true,
+					httpOnly: true, path:'/', domain: 'https://apexwallet.app/', sameSite: 'none', secure: true
 				})
 				.send();
 		} catch (error) {
@@ -83,7 +83,7 @@ router.post('/signup', async (req, res) => {
 
 			await newUser.save();
 
-			return res.status(500).send("Couldn't send the reset email");
+			return res.status(500).send("Couldn't send the verification email");
 		}
 	} catch (error) {
 		console.log(error);
@@ -132,7 +132,15 @@ router.post('/login', async (req, res) => {
 		if (!correctPassword) return res.status(400).send('Invalid credentials provided');
 
 		const token = await jwt.sign({ user: user._id }, process.env.JWT_SECRET);
-		res.status(200).cookie('jwt_token', token, { httpOnly: true }).send();
+		res.status(200)
+			.cookie('jwt_token', token, {
+				httpOnly: true,
+				path: '/',
+				domain: 'https://apexwallet.app/',
+				sameSite: 'none',
+				secure: true,
+			})
+			.send();
 	} catch (error) {
 		res.status(500).send(error.message);
 	}
