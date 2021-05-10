@@ -11,7 +11,15 @@ const mongoose = require('mongoose');
 app.use(express.json());
 app.use(cookieParser());
 const apexURL = 'https://apexwallet.app';
-app.use(cors());
+
+const corsOptions = {
+	//To allow requests from client
+	origin: ['https://apexwallet.app', 'http://192.168.1.98:3000', 'http://localhost:3000'],
+	credentials: true,
+	exposedHeaders: ['set-cookie'],
+};
+
+app.use(cors(corsOptions));
 
 
 //import routes
