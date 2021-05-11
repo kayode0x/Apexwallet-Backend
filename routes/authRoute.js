@@ -74,7 +74,7 @@ router.post('/signup', async (req, res) => {
 			});
 
 			res.status(201)
-				.cookie('jwt_token', token, {
+				.header('jwt_token', token, {
 					httpOnly: true, path:'/', sameSite: 'none', secure: true
 				})
 				.send();
@@ -133,7 +133,7 @@ router.post('/login', async (req, res) => {
 
 		const token = await jwt.sign({ user: user._id }, process.env.JWT_SECRET);
 		res.status(200)
-			.cookie('jwt_token', token, {
+			.header('jwt_token', token, {
 				httpOnly: true,
 				path: '/',
 				sameSite: 'none',
@@ -164,7 +164,7 @@ router.get('/loggedin', (req, res) => {
 router.post('/logout', async (req, res) => {
 	try {
 		res.status(200)
-			.cookie('jwt_token', '', {
+			.header('jwt_token', '', {
 				expiresIn: new Date(0),
 				httpOnly: true,
 			})
