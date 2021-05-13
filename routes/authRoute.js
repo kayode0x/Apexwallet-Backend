@@ -167,6 +167,9 @@ router.post('/logout', async (req, res) => {
 			.cookie('jwt_token', '', {
 				expiresIn: new Date(0),
 				httpOnly: true,
+				path: '/',
+				sameSite: 'none',
+				secure: true,
 			})
 			.send();
 	} catch (error) {
