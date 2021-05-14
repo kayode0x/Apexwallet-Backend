@@ -34,7 +34,7 @@ router.put('/change-password', Auth, async (req, res) => {
 
 		//check if the password matches
 		const correctPassword = await bcrypt.compare(currentPassword, user.password);
-		if (!correctPassword) return res.status(400).send("The password you entered does not match the one we have.");
+		if (!correctPassword) return res.status(400).send("The password you entered is incorrect");
 
         //hash and save the new password
 		const password = bcrypt.hashSync(newPassword, 10);
