@@ -23,25 +23,18 @@ router.put('/change-password', Auth, async (req, res) => {
 		if (!user) return res.status(400).send('Please log in to change your password');
 
         //validate the input
-		const { oldPassword, confirmOldPassword, newPassword } = req.body;
-		if (!confirmOldPassword || !oldPassword) return res.status(400).send('Please enter your old password');
+		const { currentPassword, confirmCurrentPassword, newPassword } = req.body;
+		if (!confirmCurrentPassword || !currentPassword) return res.status(400).send('Please enter your old password');
 
 		if (!newPassword) return res.status(400).send('Please enter your new password');
 
-		if (oldPassword !== confirmOldPassword) return res.status(400).send('Passwords do not match');
-
-		// if (oldPassword.length < 6) return res.status(400).send('Password must be at least 6 characters');
-
-		// if (confirmOldPassword.length < 6)
-		// 	return res.status(400).send({ message: 'Password must be at least 6 characters' });
+		if (currentPassword !== confirmCurrentPassword) return res.status(400).send('Passwords do not match');
 
 		if (newPassword.length < 6) return res.status(400).send('Password must be at least 6 characters');
 
 		//check if the password matches
-		const correctPassword = await bcrypt.compare(oldPassword, user.password);
+		const correctPassword = await bcrypt.compare(currentPassword, user.password);
 		if (!correctPassword) return res.status(400).send("The password you entered does not match the one we have.");
-
-        if (newPassword == correctPassword) return res.status(400).send("Can't update your password, it's the same.");
 
         //hash and save the new password
 		const password = bcrypt.hashSync(newPassword, 10);
