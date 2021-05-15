@@ -14,15 +14,13 @@ router.get('/', Auth, async (req, res) => {
 	}
 });
 
-//update a user
-
 //change the password
 router.put('/change-password', Auth, async (req, res) => {
 	try {
 		const user = await User.findById(req.user).select('+password');
 		if (!user) return res.status(400).send('Please log in to change your password');
 
-        //validate the input
+		//validate the input
 		const { currentPassword, confirmCurrentPassword, newPassword } = req.body;
 		if (!confirmCurrentPassword || !currentPassword) return res.status(400).send('Please enter your old password');
 
@@ -34,15 +32,36 @@ router.put('/change-password', Auth, async (req, res) => {
 
 		//check if the password matches
 		const correctPassword = await bcrypt.compare(currentPassword, user.password);
-		if (!correctPassword) return res.status(400).send("The password you entered is incorrect");
+		if (!correctPassword) return res.status(400).send('The password you entered is incorrect');
 
-        //hash and save the new password
+		//hash and save the new password
 		const password = bcrypt.hashSync(newPassword, 10);
 		user.password = password;
 
 		await user.save();
 
 		res.status(200).send('Password changed successfully 🚀');
+	} catch (error) {
+		res.status(500).send(error.message);
+	}
+});
+
+//change the name
+router.put('/change-name', Auth, async (req, res) => {
+	try {
+		const user = await User.findById(req.user);
+		if (!user) return res.status(400).send('Please login to change your name');
+
+		const { name } = req.body;
+		if (!name) return res.status(400).send('Please enter your display name');
+
+		if (name.length > 20) return res.status(400).send('Display name must be less than 20 characters');
+
+		user.name = name;
+
+		await user.save();
+
+		res.status(200).send('Display name changed successfully 🚀');
 	} catch (error) {
 		res.status(500).send(error.message);
 	}
