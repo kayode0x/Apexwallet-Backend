@@ -90,7 +90,7 @@ router.post('/watch-list', Auth, async (req, res) => {
 		await user.save();
 		console.log(user);
 		console.log(user.watchList);
-		res.status(201).send(watchedCoin);
+		res.status(201).send('Now watching ' + name);
 	} catch (error) {
 		res.status(500).send(error.message);
 	}
@@ -102,7 +102,7 @@ router.put('/watch-list', Auth, async (req, res) => {
         const user = await User.findById(req.user)
         if(!user) return res.status(400).send('Please log in to view your watch list');
 
-        const { coinId } = req.body;
+        const { name, coinId } = req.body;
 
         if(!coinId) return res.status(400).send('Please enter a coin to unwatch');
 
@@ -118,7 +118,7 @@ router.put('/watch-list', Auth, async (req, res) => {
 
         console.log(user)
 
-        return res.status(200).send(watchListArray)
+        return res.status(200).send("Unwatched " + name);
 
     } catch (error) {
         res.status(500).send(error.message)
