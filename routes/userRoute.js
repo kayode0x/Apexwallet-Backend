@@ -55,6 +55,7 @@ router.put('/change-name', Auth, async (req, res) => {
 		const { name } = req.body;
 		if (!name) return res.status(400).send('Please enter your display name');
 
+		if (name.trim().length === 0) return res.status(400).send('Name can not be empty');
 		if (name.length > 20) return res.status(400).send('Display name must be less than 20 characters');
 
 		user.name = name;
@@ -66,5 +67,62 @@ router.put('/change-name', Auth, async (req, res) => {
 		res.status(500).send(error.message);
 	}
 });
+
+//add a coin to the watch listen
+router.post('/watch-list', Auth, async (req, res) => {
+	try {
+		const user = await User.findById(req.user);
+		if (!user) return res.status(400).send('Please log in to watch a coin');
+
+		const { name, coinId } = req.body;
+		if (!name || !coinId) return res.status(400).send('Enter the name of the coin to watch');
+
+		if (name.trim().length === 0) return res.status(400).send('Name can not be empty');
+
+		// check if the coin is already in the watch list
+        const watchListArray = user.watchList;
+        const checkWatched = obj => obj.coinId === coinId;
+        if (watchListArray.some(checkWatched) === true) return res.status(400).send('Coin already in the watch list');
+
+		const watchedCoin = { name: name, coinId: coinId };
+
+		await user.watchList.push(watchedCoin);
+		await user.save();
+		console.log(user);
+		console.log(user.watchList);
+		res.status(201).send(watchedCoin);
+	} catch (error) {
+		res.status(500).send(error.message);
+	}
+});
+
+//remove from watch list
+router.put('/watch-list', Auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user)
+        if(!user) return res.status(400).send('Please log in to view your watch list');
+
+        const { coinId } = req.body;
+
+        if(!coinId) return res.status(400).send('Please enter a coin to unwatch');
+
+        //check if th e coin is already in the watch list
+        let watchListArray = user.watchList;
+		const checkWatched = (obj) => obj.coinId === coinId;
+		if (watchListArray.some(checkWatched) === false) return res.status(400).send('Coin not being watched');
+
+        watchListArray = watchListArray.filter(coin => coin.coinId !== coinId);
+
+        user.watchList = watchListArray;
+        await user.save();
+
+        console.log(user)
+
+        return res.status(200).send(watchListArray)
+
+    } catch (error) {
+        res.status(500).send(error.message)
+    }
+})
 
 module.exports = router;

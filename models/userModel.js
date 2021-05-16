@@ -45,6 +45,12 @@ const userSchema = new mongoose.Schema({
 		required: true,
 		default: false,
 	},
+	watchList: [
+		{
+			name: String,
+			coinId: String,
+		}
+	],
 	resetPasswordToken: String,
 	resetPasswordExpire: Date,
 	verifyEmailToken: {
