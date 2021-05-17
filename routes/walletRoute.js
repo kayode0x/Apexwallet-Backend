@@ -79,7 +79,7 @@ router.post('/', Auth, async (req, res) => {
 		].forEach(addCoin); //call the function to add the coins to the wallet.
 
 		//send the user because sending the new wallet isn't working...
-		res.status(201).send(newTransaction);
+		res.status(201).send('Wallet created successfully! 🚀');
 	} catch (error) {
 		res.status(500).send(error.message );
 	}
