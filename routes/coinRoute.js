@@ -114,7 +114,7 @@ router.post('/', Auth, async (req, res) => {
 				const transaction = await new Transaction({
 					coin: coin,
 					amount: amount,
-					type: type,
+					type: "Bought",
 					value: newAmount,
 				});
 
@@ -210,7 +210,7 @@ router.post('/', Auth, async (req, res) => {
 			const transaction = await new Transaction({
 				coin: coin,
 				amount: amount,
-				type: type,
+				type: "Sold",
 				value: newAmount,
 			});
 
