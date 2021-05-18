@@ -116,13 +116,31 @@ router.put('/watch-list', Auth, async (req, res) => {
         user.watchList = watchListArray;
         await user.save();
 
-        console.log(user)
-
         return res.status(200).send("Unwatched " + name);
 
     } catch (error) {
         res.status(500).send(error.message)
     }
 })
+
+//change the user's card design
+router.put('/card-design', Auth, async (req, res) => {
+	try {
+		const user = await User.findById(req.user);
+		if (!user) return res.status(400).send('Please log in to change your card design');
+
+		const { cardDesign } = req.body;
+
+		if (!cardDesign) return res.status(400).send('Please pick a card design');
+
+		cardDesign = user.cardDesign;
+
+		await user.save();
+
+		return res.status(200).send('Card design changed successfully');
+	} catch (error) {
+		res.status(500).send(error.message);
+	}
+});
 
 module.exports = router;

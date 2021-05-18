@@ -51,6 +51,10 @@ const userSchema = new mongoose.Schema({
 			coinId: String,
 		}
 	],
+	cardDesign: {
+		type: String,
+		default: 'saturnSVG',
+	},
 	resetPasswordToken: String,
 	resetPasswordExpire: Date,
 	verifyEmailToken: {
