@@ -100,7 +100,7 @@ router.put('/verify', async (req, res) => {
 		//find the user by the verification token
 		const user = await User.findOne({ verifyEmailToken: verifyEmailToken }).select('+verifyEmailToken');
 
-		if (!user) return res.status(404).send("Couldn't verify your email address, please try again...")
+		if (!user) return res.status(404).send("Your account has already been verified.")
 
 		//then change the user's status to active
 		user.isActive = true;
