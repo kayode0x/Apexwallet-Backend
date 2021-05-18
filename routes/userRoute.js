@@ -133,7 +133,7 @@ router.put('/card-design', Auth, async (req, res) => {
 
 		if (!cardDesign) return res.status(400).send('Please pick a card design');
 
-		cardDesign = user.cardDesign;
+		user.cardDesign = cardDesign;
 
 		await user.save();
 
