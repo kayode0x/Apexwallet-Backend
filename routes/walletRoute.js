@@ -66,6 +66,7 @@ router.post('/', Auth, async (req, res) => {
 		}
 
 		//list of all the coins that we support. add more coins if needed.
+		//check coin route to make sure this list matches.
 		[
 			'bitcoin',
 			'ethereum',
@@ -76,6 +77,12 @@ router.post('/', Auth, async (req, res) => {
 			'tether',
 			'binancecoin',
 			'tron',
+			'cardano',
+			'usd-coin',
+			'bitcoin-cash',
+			'polkadot',
+			'uniswap',
+			'dash',
 		].forEach(addCoin); //call the function to add the coins to the wallet.
 
 		//send the user because sending the new wallet isn't working...

@@ -40,7 +40,13 @@ router.post('/', Auth, async (req, res) => {
 			'ripple',
 			'tether',
 			'binancecoin',
+			'cardano',
+			'usd-coin',
 			'tron',
+			'bitcoin-cash',
+			'polkadot',
+			'uniswap',
+			'dash', //check wallet route to make sure it matches
 		];
 		const supportedTypes = ['buy', 'sell'];
 
