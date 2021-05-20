@@ -165,7 +165,7 @@ router.post('/', Auth, async (req, res) => {
 
 			//update the wallet, then update the coin balance
 			await updatedWallet.save();
-			const updatedCoin = await Coin.findOneAndUpdate({ coin: coin }, { balance: newCoinBalance }, { new: true });
+			const updatedCoin = await Coin.findOneAndUpdate({ wallet: user.wallet }, { balance: newCoinBalance }, { new: true });
 			await updatedCoin.save();
 
 			//create a new transaction
