@@ -11,7 +11,8 @@ const CoinGecko = require('coingecko-api');
 const CoinGeckoClient = new CoinGecko();
 
 //add or update a coin.
-router.post('/', Auth, async (req, res) => {
+router.post('/', async (req, res) => {
+	//Auth needs to go back.
 	try {
 		let newWalletBalance; //updated wallet balance.
 		let newCoinBalance; // updated coin balance.
@@ -59,11 +60,10 @@ router.post('/', Auth, async (req, res) => {
 		if (!amount) return res.status(400).send(`Select an amount worth of ${coin}`);
 		if (!type) return res.status(400).send('Are you buying or selling?');
 		const isTypeSupported = supportedTypes.includes(type);
-		if (isTypeSupported === false)
-			return res.status(400).send('We only support Buying and Selling coins for now.');
+		if (isTypeSupported === false) return res.status(400).send('We only support Buying and Selling coins for now.');
 
 		//check if the user exists
-		const user = await User.findById(req.user).select('+wallet');
+		const user = await User.findById(req.body.user).select('+wallet').populate('wallet'); ///revert this to req.user
 		if (!user) return res.status(400).send('User does not exist');
 
 		//only active users can buy coins
@@ -76,73 +76,74 @@ router.post('/', Auth, async (req, res) => {
 		if (!wallet) return res.status(400).send('No wallet found. Open a wallet to start trading 🚀');
 
 		//check if the coin is already in the wallet, to prevent doubling.
-		const coinExists = await Coin.findOne({ coin: coin });
+		const coinExists = await Coin.findOne({ wallet: wallet, coin: coin });
+		if (!coinExists) return res.status(400).send(`${coin} is not supported.`)
 
 		//we have buy and sell coins, send and receive coming soon 🚀
 		if (type === 'buy') {
 			//if the coin is not in the wallet, create it.
 
+			//don't create for now.
+
 			//this is for when we support a new coin.
-			if (!coinExists) {
-				walletBalance = await Number(wallet.balance);
-				//prevent buying more coin(s) than what is in the wallet,
-				if (amount < 10)
-					return res.status(400).send(`${amount} is too low. You can only buy a minimum of 10 USD`);
-				if (Number(amount) > walletBalance)
-					return res.status(400).send(`Can not buy more than ${walletBalance}`);
+			// if (!coinExists) {
+			// 	walletBalance = await Number(wallet.balance);
+			// 	//prevent buying more coin(s) than what is in the wallet,
+			// 	if (amount < 10)
+			// 		return res.status(400).send(`${amount} is too low. You can only buy a minimum of 10 USD`);
+			// 	if (Number(amount) > walletBalance)
+			// 		return res.status(400).send(`Can not buy more than ${walletBalance}`);
 
-				//get the current coin you are trying to buy's price
-				newCoinPrice = await getCoinPrice(coin);
+			// 	//get the current coin you are trying to buy's price
+			// 	newCoinPrice = await getCoinPrice(coin);
 
-				//then convert the coin price to the crypto equivalent.
-				newAmount = (await Number(amount)) / newCoinPrice;
+			// 	//then convert the coin price to the crypto equivalent.
+			// 	newAmount = (await Number(amount)) / newCoinPrice;
 
-				//deduct from the wallet
-				newWalletBalance = (await walletBalance) - Number(amount);
+			// 	//deduct from the wallet
+			// 	newWalletBalance = (await walletBalance) - Number(amount);
 
-				const newCoin = await new Coin({
-					wallet: user.wallet,
-					coin: req.body.coin,
-					balance: newAmount,
-				});
+			// 	const newCoin = await new Coin({
+			// 		wallet: user.wallet,
+			// 		coin: req.body.coin,
+			// 		balance: newAmount,
+			// 	});
 
-				//only update balance from a triggered account, don't user PUT/PATCH.
-				const updatedWallet = await Wallet.findOneAndUpdate(
-					{ _id: user.wallet },
-					{ balance: newWalletBalance },
-					{ new: true }
-				);
+			// 	//only update balance from a triggered account, don't user PUT/PATCH.
+			// 	const updatedWallet = await Wallet.findOneAndUpdate(
+			// 		{ _id: user.wallet },
+			// 		{ balance: newWalletBalance },
+			// 		{ new: true }
+			// 	);
 
-				await updatedWallet.save();
-				const savedCoin = await newCoin.save();
-				await wallet.coins.push(savedCoin);
-				await wallet.save();
+			// 	await updatedWallet.save();
+			// 	const savedCoin = await newCoin.save();
+			// 	await wallet.coins.push(savedCoin);
+			// 	await wallet.save();
 
-				const transaction = await new Transaction({
-					coin: coin,
-					amount: amount,
-					type: "Bought",
-					value: newAmount,
-				});
+			// 	const transaction = await new Transaction({
+			// 		coin: coin,
+			// 		amount: amount,
+			// 		type: 'Bought',
+			// 		value: newAmount,
+			// 	});
 
-				//save the transaction
-				const newTransaction = await transaction.save();
-				await wallet.transactions.push(newTransaction);
-				await wallet.save();
+			// 	//save the transaction
+			// 	const newTransaction = await transaction.save();
+			// 	await wallet.transactions.push(newTransaction);
+			// 	await wallet.save();
 
-				return res.status(200).send(newTransaction);
-			}
+			// 	return res.status(200).send(newTransaction);
+			// }
 
 			//if the coin is already in the wallet, update it.
 			walletBalance = await Number(wallet.balance);
 			coinBalance = await Number(coinExists.balance);
 
-			if (amount < 10)
-				return res.status(400).send(`${amount} is too low. You can only buy a minimum of 10 USD`);
+			if (amount < 10) return res.status(400).send(`${amount} is too low. You can only buy a minimum of 10 USD`);
 
 			//prevent buying more coin(s) than what is in the wallet,
-			if (Number(amount) > wallet.balance)
-				return res.status(400).send(`Can not buy more than $${walletBalance}`);
+			if (Number(amount) > wallet.balance) return res.status(400).send(`Can not buy more than $${walletBalance}`);
 
 			//get the current coin you are trying to buy's price
 			newCoinPrice = await getCoinPrice(coin);
@@ -157,23 +158,19 @@ router.post('/', Auth, async (req, res) => {
 			newCoinBalance = (await coinBalance) + newAmount;
 
 			//only update balance from a triggered account, don't user PUT/PATCH.
-			// const updatedWallet = await Wallet.findOneAndUpdate(
-			// 	{ _id: user.wallet },
-			// 	{ balance: newWalletBalance },
-			// 	{ new: true }
-			// );
+			wallet.balance = newWalletBalance;
 
 			//update the wallet, then update the coin balance
-			// await updatedWallet.save();
-			console.log(user.wallet)
-			const updatedCoin = await Coin.findOneAndUpdate({ wallet: user.wallet }, { balance: newCoinBalance }, { new: true });
-			await updatedCoin.save();
+			await wallet.save();
+
+			coinExists.balance = newCoinBalance;
+			await coinExists.save();
 
 			//create a new transaction
 			const transaction = await new Transaction({
 				coin: coin,
 				amount: amount,
-				type: "Bought",
+				type: 'Bought',
 				value: newAmount,
 			});
 
@@ -211,14 +208,14 @@ router.post('/', Auth, async (req, res) => {
 				{ new: true }
 			);
 			await updatedWallet.save();
-			const updatedCoin = await Coin.findOneAndUpdate({ coin: coin }, { balance: newCoinBalance }, { new: true });
-			await updatedCoin.save();
+			coinExists.balance = newCoinBalance;
+			await coinExists.save();
 
 			//save the transaction
 			const transaction = await new Transaction({
 				coin: coin,
 				amount: amount,
-				type: "Sold",
+				type: 'Sold',
 				value: newAmount,
 			});
 
@@ -234,9 +231,9 @@ router.post('/', Auth, async (req, res) => {
 });
 
 //get the coins.
-router.get('/', Auth, async (req, res) => {
+router.get('/', async (req, res) => {
 	try {
-		const user = await User.findById(req.user).select('+wallet');
+		const user = await User.findById(req.body.user).select('+wallet');
 		if (!user) return res.status(400).send('User not found');
 		if (user.isActive === false) return res.status(400).send('Verify your account to buy coins 🚀');
 		if (user.wallet === undefined && user.isActive === true) {

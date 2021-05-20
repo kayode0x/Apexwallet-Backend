@@ -94,10 +94,10 @@ router.post('/', Auth, async (req, res) => {
 
 
 //get the wallet of the logged in user.
-router.get('/', Auth, async (req, res) => {
+router.get('/', async (req, res) => {
 	try {
 		//find the logged in user
-		const user = await User.findById(req.user);
+		const user = await User.findById(req.body.user);
 		if (!user) return res.status(400).send("Please log in");
 
 		const wallet = await Wallet.findOne({ user: req.user })
