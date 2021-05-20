@@ -157,14 +157,15 @@ router.post('/', Auth, async (req, res) => {
 			newCoinBalance = (await coinBalance) + newAmount;
 
 			//only update balance from a triggered account, don't user PUT/PATCH.
-			const updatedWallet = await Wallet.findOneAndUpdate(
-				{ _id: user.wallet },
-				{ balance: newWalletBalance },
-				{ new: true }
-			);
+			// const updatedWallet = await Wallet.findOneAndUpdate(
+			// 	{ _id: user.wallet },
+			// 	{ balance: newWalletBalance },
+			// 	{ new: true }
+			// );
 
 			//update the wallet, then update the coin balance
-			await updatedWallet.save();
+			// await updatedWallet.save();
+			console.log(user.wallet)
 			const updatedCoin = await Coin.findOneAndUpdate({ wallet: user.wallet }, { balance: newCoinBalance }, { new: true });
 			await updatedCoin.save();
 
