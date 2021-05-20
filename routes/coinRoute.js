@@ -31,6 +31,7 @@ router.post('/', Auth, async (req, res) => {
 		}
 
 		const { coin, amount, type } = req.body;
+
 		const supportedCoins = [
 			'bitcoin',
 			'ethereum',
@@ -171,7 +172,7 @@ router.post('/', Auth, async (req, res) => {
 			const transaction = await new Transaction({
 				coin: coin,
 				amount: amount,
-				type: type,
+				type: "Bought",
 				value: newAmount,
 			});
 
