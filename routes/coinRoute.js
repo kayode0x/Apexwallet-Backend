@@ -11,7 +11,7 @@ const CoinGecko = require('coingecko-api');
 const CoinGeckoClient = new CoinGecko();
 
 //add or update a coin.
-router.post('/', async (req, res) => {
+router.post('/', Auth, async (req, res) => {
 	//Auth needs to go back.
 	try {
 		let newWalletBalance; //updated wallet balance.
@@ -63,7 +63,7 @@ router.post('/', async (req, res) => {
 		if (isTypeSupported === false) return res.status(400).send('We only support Buying and Selling coins for now.');
 
 		//check if the user exists
-		const user = await User.findById(req.body.user).select('+wallet').populate('wallet'); ///revert this to req.user
+		const user = await User.findById(req.user).select('+wallet'); 
 		if (!user) return res.status(400).send('User does not exist');
 
 		//only active users can buy coins
@@ -231,9 +231,9 @@ router.post('/', async (req, res) => {
 });
 
 //get the coins.
-router.get('/', async (req, res) => {
+router.get('/', Auth, async (req, res) => {
 	try {
-		const user = await User.findById(req.body.user).select('+wallet');
+		const user = await User.findById(req.user).select('+wallet');
 		if (!user) return res.status(400).send('User not found');
 		if (user.isActive === false) return res.status(400).send('Verify your account to buy coins 🚀');
 		if (user.wallet === undefined && user.isActive === true) {
