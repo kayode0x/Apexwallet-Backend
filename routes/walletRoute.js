@@ -111,9 +111,9 @@ router.get('/', Auth, async (req, res) => {
 				},
 			});
 		if (!wallet && user.isActive === false)
-			return res.status(200).send('Verify your email address to Open a wallet 🚀' );
+			return res.status(200).send(null);
 		if (!wallet && user.isActive === true)
-			return res.status(200).send('No wallet found. Open a wallet to start trading 🚀' );
+			return res.status(200).send(null);
 		res.send(wallet);
 	} catch (error) {
 		res.status(500).send(error.message);
