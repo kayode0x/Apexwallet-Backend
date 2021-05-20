@@ -89,8 +89,8 @@ router.post('/', Auth, async (req, res) => {
 			// if (!coinExists) {
 			// 	walletBalance = await Number(wallet.balance);
 			// 	//prevent buying more coin(s) than what is in the wallet,
-			// 	if (amount < 10)
-			// 		return res.status(400).send(`${amount} is too low. You can only buy a minimum of 10 USD`);
+			// 	if (amount < 2)
+			// 		return res.status(400).send(`${amount} is too low. You can only buy a minimum of 2 USD`);
 			// 	if (Number(amount) > walletBalance)
 			// 		return res.status(400).send(`Can not buy more than ${walletBalance}`);
 
@@ -140,7 +140,7 @@ router.post('/', Auth, async (req, res) => {
 			walletBalance = await Number(wallet.balance);
 			coinBalance = await Number(coinExists.balance);
 
-			if (amount < 10) return res.status(400).send(`${amount} is too low. You can only buy a minimum of 10 USD`);
+			if (amount < 2) return res.status(400).send(`${amount} is too low. You can only buy a minimum of 2 USD`);
 
 			//prevent buying more coin(s) than what is in the wallet,
 			if (Number(amount) > wallet.balance) return res.status(400).send(`Can not buy more than $${walletBalance}`);
