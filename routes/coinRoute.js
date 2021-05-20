@@ -129,7 +129,7 @@ router.post('/', Auth, async (req, res) => {
 				await wallet.transactions.push(newTransaction);
 				await wallet.save();
 
-				return res.send(newTransaction);
+				return res.status(200).send(newTransaction);
 			}
 
 			//if the coin is already in the wallet, update it.
@@ -180,7 +180,7 @@ router.post('/', Auth, async (req, res) => {
 			await wallet.transactions.push(newTransaction);
 			await wallet.save();
 
-			return res.send(newTransaction);
+			return res.status(200).send(newTransaction);
 		} else if (type === 'sell') {
 			if (!coinExists) return res.status(400).send('Can not sell a coin that you do not own');
 			//prevent selling more coin(s) than what is in the coin balance
@@ -224,7 +224,7 @@ router.post('/', Auth, async (req, res) => {
 			await wallet.transactions.push(newTransaction);
 			await wallet.save();
 
-			return res.send(newTransaction);
+			return res.status(200).send(newTransaction);
 		} //add send and receive here.
 	} catch (error) {
 		res.status(500).send(error.message);
