@@ -214,9 +214,9 @@ router.post('/', Auth, async (req, res) => {
 			//save the transaction
 			const transaction = await new Transaction({
 				coin: coin,
-				amount: amount,
+				amount: newAmount,
 				type: 'Sold',
-				value: newAmount,
+				value: amount,
 			});
 
 			const newTransaction = await transaction.save();
