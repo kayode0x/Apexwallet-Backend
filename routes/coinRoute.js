@@ -79,7 +79,7 @@ router.post('/', Auth, async (req, res) => {
 
 		//check if the coin is already in the wallet, to prevent doubling.
 		const coinExists = await Coin.findOne({ wallet: wallet, coin: coin });
-		if (!coinExists) return res.status(400).send(`${coin} is not supported.`)
+		// if (!coinExists) return res.status(400).send(`${coin} is not supported.`)
 
 		//we have buy and sell coins, send and receive coming soon 🚀
 		if (type === 'buy') {
