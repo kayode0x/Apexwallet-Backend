@@ -49,7 +49,8 @@ router.post('/', Auth, async (req, res) => {
 			'polkadot',
 			'uniswap',
 			'dash',
-			'decentraland', //check wallet route to make sure it matches
+			'decentraland',
+			//check wallet route to make sure it matches
 		];
 		const supportedTypes = ['buy', 'sell'];
 
