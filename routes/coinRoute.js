@@ -82,7 +82,7 @@ router.post('/', Auth, async (req, res) => {
 
 		//we have buy and sell coins, send and receive coming soon 🚀
 		if (type === 'buy') {
-			//if the coin is not in the wallet, create it.
+			//if the coin is not in the wallet, create it
 
 			// don't create for now.
 
