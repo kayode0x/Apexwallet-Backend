@@ -48,7 +48,8 @@ router.post('/', Auth, async (req, res) => {
 			'bitcoin-cash',
 			'polkadot',
 			'uniswap',
-			'dash', //check wallet route to make sure it matches
+			'dash',
+			'decentraland', //check wallet route to make sure it matches
 		];
 		const supportedTypes = ['buy', 'sell'];
 
@@ -83,53 +84,53 @@ router.post('/', Auth, async (req, res) => {
 		if (type === 'buy') {
 			//if the coin is not in the wallet, create it.
 
-			//don't create for now.
+			// don't create for now.
 
-			//this is for when we support a new coin.
-			// if (!coinExists) {
-			// 	walletBalance = await Number(wallet.balance);
-			// 	//prevent buying more coin(s) than what is in the wallet,
-			// 	if (amount < 2)
-			// 		return res.status(400).send(`${amount} is too low. You can only buy a minimum of 2 USD`);
-			// 	if (Number(amount) > walletBalance)
-			// 		return res.status(400).send(`Can not buy more than ${walletBalance}`);
+			// this is for when we support a new coin.
+			if (!coinExists) {
+				walletBalance = await Number(wallet.balance);
+				//prevent buying more coin(s) than what is in the wallet,
+				if (amount < 2)
+					return res.status(400).send(`${amount} is too low. You can only buy a minimum of 2 USD`);
+				if (Number(amount) > walletBalance)
+					return res.status(400).send(`Can not buy more than ${walletBalance}`);
 
-			// 	//get the current coin you are trying to buy's price
-			// 	newCoinPrice = await getCoinPrice(coin);
+				//get the current coin you are trying to buy's price
+				newCoinPrice = await getCoinPrice(coin);
 
-			// 	//then convert the coin price to the crypto equivalent.
-			// 	newAmount = (await Number(amount)) / newCoinPrice;
+				//then convert the coin price to the crypto equivalent.
+				newAmount = (await Number(amount)) / newCoinPrice;
 
-			// 	//deduct from the wallet
-			// 	newWalletBalance = (await walletBalance) - Number(amount);
+				//deduct from the wallet
+				newWalletBalance = (await walletBalance) - Number(amount);
 
-			// 	const newCoin = await new Coin({
-			// 		wallet: user.wallet,
-			// 		coin: req.body.coin,
-			// 		balance: newAmount,
-			// 	});
+				const newCoin = await new Coin({
+					wallet: user.wallet,
+					coin: req.body.coin,
+					balance: newAmount,
+				});
 
-			// 	//only update balance from a triggered account, don't user PUT/PATCH.
-			// 	wallet.balance = newWalletBalance;
-			// 	await wallet.save();
-			// 	const savedCoin = await newCoin.save();
-			// 	await wallet.coins.push(savedCoin);
-			// 	await wallet.save();
+				//only update balance from a triggered account, don't user PUT/PATCH.
+				wallet.balance = newWalletBalance;
+				await wallet.save();
+				const savedCoin = await newCoin.save();
+				await wallet.coins.push(savedCoin);
+				await wallet.save();
 
-			// 	const transaction = await new Transaction({
-			// 		coin: coin,
-			// 		amount: amount,
-			// 		type: 'Bought',
-			// 		value: newAmount,
-			// 	});
+				const transaction = await new Transaction({
+					coin: coin,
+					amount: amount,
+					type: 'Bought',
+					value: newAmount,
+				});
 
-			// 	//save the transaction
-			// 	const newTransaction = await transaction.save();
-			// 	await wallet.transactions.push(newTransaction);
-			// 	await wallet.save();
+				//save the transaction
+				const newTransaction = await transaction.save();
+				await wallet.transactions.push(newTransaction);
+				await wallet.save();
 
-			// 	return res.status(200).send(newTransaction);
-			// }
+				return res.status(200).send(newTransaction);
+			}
 
 			//if the coin is already in the wallet, update it.
 			walletBalance = await Number(wallet.balance);
@@ -199,7 +200,7 @@ router.post('/', Auth, async (req, res) => {
 			//only update balance from a triggered account, don't user PUT/PATCH.
 			wallet.balance = newWalletBalance;
 			await wallet.save();
-			
+
 			coinExists.balance = newCoinBalance;
 			await coinExists.save();
 
