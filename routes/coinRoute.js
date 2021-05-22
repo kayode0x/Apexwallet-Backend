@@ -110,13 +110,8 @@ router.post('/', Auth, async (req, res) => {
 			// 	});
 
 			// 	//only update balance from a triggered account, don't user PUT/PATCH.
-			// 	const updatedWallet = await Wallet.findOneAndUpdate(
-			// 		{ _id: user.wallet },
-			// 		{ balance: newWalletBalance },
-			// 		{ new: true }
-			// 	);
-
-			// 	await updatedWallet.save();
+			// 	wallet.balance = newWalletBalance;
+			// 	await wallet.save();
 			// 	const savedCoin = await newCoin.save();
 			// 	await wallet.coins.push(savedCoin);
 			// 	await wallet.save();
@@ -202,12 +197,9 @@ router.post('/', Auth, async (req, res) => {
 			newWalletBalance = (await walletBalance) + newAmount;
 
 			//only update balance from a triggered account, don't user PUT/PATCH.
-			const updatedWallet = await Wallet.findOneAndUpdate(
-				{ _id: user.wallet },
-				{ balance: newWalletBalance },
-				{ new: true }
-			);
-			await updatedWallet.save();
+			wallet.balance = newWalletBalance;
+			await wallet.save();
+			
 			coinExists.balance = newCoinBalance;
 			await coinExists.save();
 
