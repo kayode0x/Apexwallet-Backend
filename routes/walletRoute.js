@@ -83,6 +83,8 @@ router.post('/', Auth, async (req, res) => {
 			'polkadot',
 			'uniswap',
 			'dash',
+			// 'decentraland',
+			//check wallet route to make sure it matches
 		].forEach(addCoin); //call the function to add the coins to the wallet.
 
 		//send the user because sending the new wallet isn't working...
