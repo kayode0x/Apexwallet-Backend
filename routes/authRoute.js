@@ -13,7 +13,7 @@ router.post('/signup', async (req, res) => {
 		//first check if the required fields are present
 		const { username, email, password } = req.body;
 		if (!username || !email || !password)
-			return res.status(420).send('Please fill in the required fields');
+			return res.status(400).send('Please fill in the required fields');
 
 		//check if the email exists
 		const existingEmail = await User.findOne({ email: req.body.email });
@@ -137,7 +137,7 @@ router.post('/login', async (req, res) => {
 				httpOnly: true,
 				path: '/',
 				sameSite: 'none',
-				secure: true,
+				// secure: true,
 			})
 			.send();
 	} catch (error) {
