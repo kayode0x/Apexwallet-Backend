@@ -137,7 +137,7 @@ router.post('/login', async (req, res) => {
 				httpOnly: true,
 				path: '/',
 				sameSite: 'none',
-				// secure: true,
+				secure: true,
 			})
 			.send();
 	} catch (error) {

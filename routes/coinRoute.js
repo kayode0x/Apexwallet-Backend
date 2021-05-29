@@ -309,7 +309,6 @@ router.post('/send-coin', Auth, async (req, res) => {
 		let newUserBalance = Number(userBalance) - Number(amount);
 		let newRecipientBalance = Number(recipientBalance) + Number(amount);
 
-		console.log(newRecipientBalance);
 
 		//save the user and recipient wallet balance with the new values.
 		userCoin.balance = newUserBalance;
@@ -324,7 +323,7 @@ router.post('/send-coin', Auth, async (req, res) => {
 			amount: amount,
 			type: 'Sent',
 			value: amount,
-			name: `${theRecipient.username}`,
+			name: `${theRecipient.username} (${coin})`,
 		});
 
 		//save the transaction
@@ -338,7 +337,7 @@ router.post('/send-coin', Auth, async (req, res) => {
 			amount: amount,
 			type: 'Received',
 			value: amount,
-			name: `${user.username}`,
+			name: `${user.username} (coin)`,
 		});
 
 		//save the transaction
