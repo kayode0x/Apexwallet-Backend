@@ -4,14 +4,11 @@ const Wallet = require('../models/walletModel');
 const Auth = require('../auth/auth');
 const Coin = require('../models/coinModel');
 const Transaction = require('../models/transactionModel');
-
-//coin gecko
-const CoinGecko = require('coingecko-api');
-//Initiate the CoinGecko API Client
-const CoinGeckoClient = new CoinGecko();
+const supportedCoins = require('../utils/supportedCoins');
 
 //create a new wallet.
 router.post('/', Auth, async (req, res) => {
+	console.log(supportedCoins);
 	try {
 		const user = await User.findById(req.user);
 		if (!user) return res.status(400).send('User does not exist');
@@ -28,7 +25,7 @@ router.post('/', Auth, async (req, res) => {
 			amount: 500,
 			type: 'Free',
 			value: 500,
-			name: 'Free'
+			name: 'Free',
 		});
 
 		//save the transaction
@@ -64,27 +61,8 @@ router.post('/', Auth, async (req, res) => {
 			}
 		}
 
-		//list of all the coins that we support. add more coins if needed.
-		//check coin route to make sure this list matches.
-		[
-			'bitcoin',
-			'ethereum',
-			'ethereum-classic',
-			'litecoin',
-			'dogecoin',
-			'ripple',
-			'tether',
-			'binancecoin',
-			'tron',
-			'cardano',
-			'usd-coin',
-			'bitcoin-cash',
-			'polkadot',
-			'uniswap',
-			'dash',
-			// 'decentraland',
-			//check wallet route to make sure it matches
-		].forEach(addCoin); //call the function to add the coins to the wallet.
+		//call the function to add the coins to the wallet.
+		supportedCoins.forEach(addCoin);
 
 		//send the user because sending the new wallet isn't working...
 		res.status(201).send('Wallet created successfully! 🚀');
@@ -172,14 +150,13 @@ router.post('/send-cash', Auth, async (req, res) => {
 			amount: amount,
 			type: 'Sent',
 			value: amount,
-			name: theRecipient.username
+			name: theRecipient.username,
 		});
 
 		//save the transaction
 		const newUserTransaction = await userTransaction.save();
 		await wallet.transactions.push(newUserTransaction);
 		await wallet.save();
-
 
 		//create a new recipient transaction
 		const recipientTransaction = await new Transaction({
