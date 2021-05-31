@@ -86,8 +86,6 @@ router.post('/signup', async (req, res) => {
 			return res.status(500).send("Couldn't send the verification email");
 		}
 	} catch (error) {
-		console.log(error);
-		console.log(error.message);
 		res.status(500).send(error.message);
 	}
 });
@@ -137,7 +135,7 @@ router.post('/login', async (req, res) => {
 				httpOnly: true,
 				path: '/',
 				sameSite: 'none',
-				// secure: true,
+				secure: true,
 			})
 			.send();
 	} catch (error) {

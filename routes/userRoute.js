@@ -88,8 +88,6 @@ router.post('/watch-list', Auth, async (req, res) => {
 
 		await user.watchList.push(watchedCoin);
 		await user.save();
-		console.log(user);
-		console.log(user.watchList);
 		res.status(201).send('Now watching ' + name);
 	} catch (error) {
 		res.status(500).send(error.message);

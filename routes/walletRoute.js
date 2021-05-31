@@ -8,7 +8,6 @@ const supportedCoins = require('../utils/supportedCoins');
 
 //create a new wallet.
 router.post('/', Auth, async (req, res) => {
-	console.log(supportedCoins);
 	try {
 		const user = await User.findById(req.user);
 		if (!user) return res.status(400).send('User does not exist');
