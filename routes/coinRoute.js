@@ -287,7 +287,7 @@ router.post('/send', Auth, async (req, res) => {
 			amount: amount,
 			type: 'Received',
 			value: amount,
-			name: `${user.username} (coin)`,
+			name: `${user.username} (${coin})`,
 		});
 
 		//save the transaction
