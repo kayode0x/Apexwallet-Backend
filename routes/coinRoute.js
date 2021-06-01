@@ -230,7 +230,7 @@ router.post('/send', Auth, async (req, res) => {
 
 		//check if the recipient exists.
 		const theRecipient = await User.findOne({ username: recipient }).select('+wallet');
-		if (!theRecipient) return res.status(400).send("Couldn't find the recipient");
+		if (!theRecipient) return res.status(400).send(`Couldn't find a user with the username ${recipient}`);
 
 		//check if the recipient has a wallet.
 		const recipientWallet = await Wallet.findOne({ user: theRecipient._id });

@@ -120,7 +120,7 @@ router.post('/send-cash', Auth, async (req, res) => {
 
 		//check if the recipient exists.
 		const theRecipient = await User.findOne({ username: recipient }).select('+wallet');
-		if (!theRecipient) return res.status(400).send("Couldn't find the recipient");
+		if (!theRecipient) return res.status(400).send(`Couldn't find a user with the username ${recipient}`);
 
 		//prevent the user from sending to their self.
 		if (user.username === theRecipient.username) return res.status(400).send('You cannot send cash to yourself');
