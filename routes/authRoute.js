@@ -59,9 +59,8 @@ router.post('/signup', async (req, res) => {
 		const verificationURL = `${apexURL}/verify?token=${verificationToken}`;
 
 		const message = `
-            <p>Hi there ${req.body.username}!,</p>
-            <p>We would like to welcome you on board.</p>
-            <p>But before you do anything, it's required that you verify your email address just so we know it's you.</p>
+            <p>Hi there ${req.body.username.toUpperCase()}!, welcome to Apex 🚀</p>
+            <p>Before doing anything, we recommend verifying your account to use most of the features available.</p>
             <a href="${verificationURL}" clicktracking=off>Verify Account</a>
             <p>Apex Team. 🚀</p>
         `;

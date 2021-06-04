@@ -177,4 +177,12 @@ router.post('/send-cash', Auth, async (req, res) => {
 	}
 });
 
+//request cash from another user.
+router.post('/request-cash', Auth, async (req, res) => {
+	//requires amount and the person to request from.
+	//use nodemailer to send a notification.
+	//create a notifications model that stores all notifications of the logged in user.
+	//try to allow auto payments with a single click
+})
+
 module.exports = router;

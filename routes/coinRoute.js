@@ -183,7 +183,7 @@ router.post('/sell', Auth, async (req, res) => {
 			amount: newAmount,
 			type: 'Sold',
 			value: amount,
-			name: `${coin} @ ${amount}`
+			name: `${coin} @ ${amount}`,
 		});
 
 		const newTransaction = await transaction.save();
@@ -191,23 +191,6 @@ router.post('/sell', Auth, async (req, res) => {
 		await wallet.save();
 
 		return res.status(200).send(newTransaction);
-	} catch (error) {
-		res.status(500).send(error.message);
-	}
-});
-
-//get the coins.
-router.get('/', Auth, async (req, res) => {
-	try {
-		const user = await User.findById(req.user).select('+wallet');
-		if (!user) return res.status(400).send('User not found');
-		if (user.isActive === false) return res.status(400).send('Verify your account to buy coins 🚀');
-		if (user.wallet === undefined && user.isActive === true) {
-			return res.send('You can open a wallet now to start trading 🚀');
-		}
-		const coin = await Coin.find({ wallet: user.wallet });
-		if (coin.length === 0 && user.isActive === true) return res.status(200).send('No coins yet.. Buy now 🚀');
-		res.send(coin);
 	} catch (error) {
 		res.status(500).send(error.message);
 	}
@@ -296,6 +279,38 @@ router.post('/send', Auth, async (req, res) => {
 		await recipientWallet.save();
 
 		return res.status(200).send(newUserTransaction);
+	} catch (error) {
+		res.status(500).send(error.message);
+	}
+});
+
+//convert coins.
+router.post('/convert', Auth, async (req, res) => {
+	//get the coinFrom, amount and coinTo.
+	//check the coingecko sdk to see if theres a conversion method.
+	//else sell coinFrom as USD, then buy coinTo with the USD.
+});
+
+//request coin from another user.
+router.post('/request-coin', Auth, async (req, res) => {
+	//requires amount and the person to request from.
+	//use nodemailer to send a notification.
+	//create a notifications model that stores all notifications of the logged in user.
+	//try to allow auto payments with a single click
+});
+
+//get the coins.
+router.get('/', Auth, async (req, res) => {
+	try {
+		const user = await User.findById(req.user).select('+wallet');
+		if (!user) return res.status(400).send('User not found');
+		if (user.isActive === false) return res.status(400).send('Verify your account to buy coins 🚀');
+		if (user.wallet === undefined && user.isActive === true) {
+			return res.send('You can open a wallet now to start trading 🚀');
+		}
+		const coin = await Coin.find({ wallet: user.wallet });
+		if (coin.length === 0 && user.isActive === true) return res.status(200).send('No coins yet.. Buy now 🚀');
+		res.send(coin);
 	} catch (error) {
 		res.status(500).send(error.message);
 	}
