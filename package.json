@@ -23,6 +23,7 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.12.7",
     "nodemailer": "^6.6.0",
-    "nodemon": "^2.0.7"
+    "nodemon": "^2.0.7",
+    "normalize-url": "^4.5.0"
   }
 }
