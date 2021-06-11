@@ -122,7 +122,7 @@ router.post('/send-cash', Auth, async (req, res) => {
 		if (amount > wallet.balance) return res.status(400).send(`You can't send more than $${wallet.balance}`);
 
 		//check if the recipient exists.
-		const theRecipient = await User.findOne({ username: recipient }).select('+wallet');
+		const theRecipient = await User.findOne({ username: recipient.toLowerCase() }).select('+wallet');
 		if (!theRecipient) return res.status(400).send(`Couldn't find a user with the username ${recipient}`);
 
 		//prevent the user from sending to their self.

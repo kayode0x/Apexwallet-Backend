@@ -239,7 +239,7 @@ router.post('/send', Auth, async (req, res) => {
 		//allow users chose if they want to send coins with username or address
 		if (method === 'username') {
 			//check if the recipient exists.
-			theRecipient = await User.findOne({ username: recipient }).select('+wallet');
+			theRecipient = await User.findOne({ username: recipient.toLowerCase() }).select('+wallet');
 			if (!theRecipient) return res.status(400).send(`Couldn't find a user with the username ${recipient}`);
 
 			//prevent the user from sending to their self.
