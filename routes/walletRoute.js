@@ -152,8 +152,8 @@ router.post('/send-cash', Auth, async (req, res) => {
 			amount: amount,
 			type: 'Sent',
 			value: amount,
-			name: theRecipient.username,
-			memo: memo ? memo : `Transfer to ${theRecipient.username}`
+			name: `Transfer to ${theRecipient.username}`,
+			memo: memo && memo,
 		});
 
 		//save the transaction
@@ -167,8 +167,8 @@ router.post('/send-cash', Auth, async (req, res) => {
 			amount: amount,
 			type: 'Received',
 			value: amount,
-			name: user.username,
-			memo: memo ? memo : `Transfer from ${user.username}`,
+			name: `Transfer from ${user.username}`,
+			memo: memo && memo,
 		});
 
 		//save the transaction
@@ -188,6 +188,6 @@ router.post('/request-cash', Auth, async (req, res) => {
 	//use nodemailer to send a notification.
 	//create a notifications model that stores all notifications of the logged in user.
 	//try to allow auto payments with a single click
-})
+});
 
 module.exports = router;

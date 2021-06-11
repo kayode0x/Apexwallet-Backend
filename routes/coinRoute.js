@@ -208,7 +208,8 @@ router.post('/send', Auth, async (req, res) => {
 		const { coin, amount, recipient, method, memo } = req.body;
 		if (!coin || !amount || !recipient || !method) return res.status(400).send('Please fill in all fields');
 
-		if(memo !== undefined && memo.length > 50) return res.status(400).send("Memo can't be longer than 50 characters");
+		if (memo !== undefined && memo.length > 50)
+			return res.status(400).send("Memo can't be longer than 50 characters");
 
 		const isCoinSupported = supportedCoins.includes(coin);
 		if (isCoinSupported === false) return res.status(400).send(`We do not currently support ${coin}`);
@@ -261,7 +262,10 @@ router.post('/send', Auth, async (req, res) => {
 			if (!recipientCoin) return res.status(400).send(`Couldn't find ${coin} with that address`);
 
 			//make sure the recipientCoin matches the coin coming in.
-			if (coin !== recipientCoin.coin) return res.status(400).send(`Here on Apex, that is a ${recipientCoin.coin} address, gotta be careful <3`);
+			if (coin !== recipientCoin.coin)
+				return res
+					.status(400)
+					.send(`Here on Apex, that is a ${recipientCoin.coin} address, gotta be careful <3`);
 
 			//check if the recipient has a wallet.
 			recipientWallet = await Wallet.findById(recipientCoin.wallet);
@@ -293,12 +297,8 @@ router.post('/send', Auth, async (req, res) => {
 			symbol: symbol,
 			type: 'Sent',
 			value: amount,
-			name: method === 'username' ? theRecipient.username : recipientCoin._id,
-			memo: memo
-				? memo
-				: method === 'username'
-				? `Transfer to ${theRecipient.username}`
-				: `Transfer to ${recipientCoin._id}`,
+			name: method === 'username' ? `Transfer to ${theRecipient.username}` : `Transfer to ${recipientCoin._id}`,
+			memo: memo && memo,
 		});
 
 		//save the transaction
@@ -313,12 +313,8 @@ router.post('/send', Auth, async (req, res) => {
 			symbol: symbol,
 			type: 'Received',
 			value: amount,
-			name: method === 'username' ? user.username : userCoin._id, //set the transaction name based on the method used.
-			memo: memo
-				? memo
-				: method === 'username'
-				? `Transfer from ${user.username}`
-				: `Transfer from ${userCoin._id}`,
+			name: method === 'username' ? `Transfer from ${user.username}` : `Transfer from ${userCoin._id}`, //set the transaction name based on the method used.
+			memo: memo && memo,
 		});
 
 		//save the transaction
