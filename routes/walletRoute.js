@@ -20,7 +20,7 @@ router.post('/', Auth, async (req, res) => {
 
 		//create a new transaction based on the free cash
 		const transaction = await new Transaction({
-			coin: 'Free',
+			coin: 'USD',
 			amount: 500,
 			type: 'Free',
 			value: 500,
@@ -107,10 +107,13 @@ router.post('/send-cash', Auth, async (req, res) => {
 	if (!wallet) return res.status(400).send("You don't have a wallet");
 
 	try {
-		const { amount, recipient } = req.body;
+		const { amount, recipient, memo } = req.body;
 
 		//validate the input
 		if (!amount || !recipient) return res.status(400).send('Please enter an amount to send and a recipient');
+
+		if (memo !== undefined && memo.length > 50)
+			return res.status(400).send("Memo can't be longer than 50 characters");
 
 		//you can only send a minimum of $2.
 		if (amount < 2) return res.status(400).send('You can only send a minimum of $2');
@@ -145,11 +148,12 @@ router.post('/send-cash', Auth, async (req, res) => {
 
 		//create a new user transaction
 		const userTransaction = await new Transaction({
-			coin: 'Dollars',
+			coin: 'USD',
 			amount: amount,
 			type: 'Sent',
 			value: amount,
 			name: theRecipient.username,
+			memo: memo ? memo : `Transfer to ${theRecipient.username}`
 		});
 
 		//save the transaction
@@ -159,11 +163,12 @@ router.post('/send-cash', Auth, async (req, res) => {
 
 		//create a new recipient transaction
 		const recipientTransaction = await new Transaction({
-			coin: 'Dollars',
+			coin: 'USD',
 			amount: amount,
 			type: 'Received',
 			value: amount,
 			name: user.username,
+			memo: memo ? memo : `Transfer from ${user.username}`,
 		});
 
 		//save the transaction

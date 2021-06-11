@@ -5,6 +5,7 @@ const Transaction = require('../models/transactionModel');
 const Coin = require('../models/coinModel');
 const Auth = require('../auth/auth');
 const supportedCoins = require('../utils/supportedCoins');
+const coinSymbol = require('../utils/coinSymbol');
 
 //coin gecko
 const CoinGecko = require('coingecko-api');
@@ -39,6 +40,8 @@ router.post('/buy', Auth, async (req, res) => {
 		if (isCoinSupported === false) return res.status(400).send(`We do not currently support ${coin}`);
 
 		if (!amount) return res.status(400).send(`Select an amount worth of ${coin}`);
+
+		const symbol = coinSymbol(coin);
 
 		//check if the user exists
 		const user = await User.findById(req.user).select('+wallet');
@@ -92,7 +95,7 @@ router.post('/buy', Auth, async (req, res) => {
 			amount: amount,
 			type: 'Bought',
 			value: newAmount,
-			name: `${coin} @ ${parseFloat(newAmount).toFixed(6)}`,
+			name: `${parseFloat(newAmount).toFixed(6)} ${symbol}`,
 		});
 
 		//save the transaction
@@ -134,6 +137,8 @@ router.post('/sell', Auth, async (req, res) => {
 		if (isCoinSupported === false) return res.status(400).send(`We do not currently support ${coin}`);
 
 		if (!amount) return res.status(400).send(`Select an amount worth of ${coin}`);
+
+		const symbol = coinSymbol(coin);
 
 		//check if the user exists
 		const user = await User.findById(req.user).select('+wallet');
@@ -183,7 +188,7 @@ router.post('/sell', Auth, async (req, res) => {
 			amount: newAmount,
 			type: 'Sold',
 			value: amount,
-			name: `${coin} @ ${amount}`,
+			name: `${amount} ${symbol}`,
 		});
 
 		const newTransaction = await transaction.save();
@@ -199,6 +204,17 @@ router.post('/sell', Auth, async (req, res) => {
 //send coins to another user.
 router.post('/send', Auth, async (req, res) => {
 	try {
+		//validate the input.
+		const { coin, amount, recipient, method, memo } = req.body;
+		if (!coin || !amount || !recipient || !method) return res.status(400).send('Please fill in all fields');
+
+		if(memo !== undefined && memo.length > 50) return res.status(400).send("Memo can't be longer than 50 characters");
+
+		const isCoinSupported = supportedCoins.includes(coin);
+		if (isCoinSupported === false) return res.status(400).send(`We do not currently support ${coin}`);
+
+		const symbol = coinSymbol(coin);
+
 		//check if the user exists.
 		const user = await User.findById(req.user);
 		if (!user) return res.status(400).send('Please login to send coins');
@@ -207,36 +223,56 @@ router.post('/send', Auth, async (req, res) => {
 		const wallet = await Wallet.findOne({ user: user }).populate('coins');
 		if (!wallet) return res.status(400).send('Please create a wallet before sending coins');
 
-		//validate the input.
-		const { coin, amount, recipient } = req.body;
-		if (!coin || !amount || !recipient) return res.status(400).send('Please fill in all fields');
-
-		//check if the recipient exists.
-		const theRecipient = await User.findOne({ username: recipient }).select('+wallet');
-		if (!theRecipient) return res.status(400).send(`Couldn't find a user with the username ${recipient}`);
-
-		//check if the recipient has a wallet.
-		const recipientWallet = await Wallet.findOne({ user: theRecipient._id });
-		if (!recipientWallet) return res.status(400).send('The recipient does not have a wallet.');
-
-		//prevent the user from sending to their self.
-		if (user.username === theRecipient.username) return res.status(400).send(`You cannot send ${coin} to yourself`);
-
-		const isCoinSupported = supportedCoins.includes(coin);
-		if (isCoinSupported === false) return res.status(400).send(`We do not currently support ${coin}`);
-
 		//check if the coin is already in the wallet.
 		const userCoin = await Coin.findOne({ wallet: wallet, coin: coin });
 		if (!userCoin) return res.status(400).send(`${coin} is not supported.`);
 
-		//check if the user has the coin is already in the wallet.
-		const recipientCoin = await Coin.findOne({ wallet: recipientWallet, coin: coin });
-		if (!recipientCoin) return res.status(400).send(`Recipient doesn't have ${coin}`);
-
 		//make sure the amount isn't more than the balance and isn't less than 0.
-		if (amount > userCoin.balance) return res.status(400).send(`You can't send more than ${userCoin.balance}`);
-		if (amount <= 0) return res.status(400).send('Amount must be greater than 0');
+		if (amount > userCoin.balance)
+			return res.status(400).send(`You can't send more than ${userCoin.balance} ${symbol}`);
+		if (amount <= 0) return res.status(400).send(`Amount must be greater than 0 ${symbol}`);
 
+		let recipientCoin;
+		let recipientWallet;
+		let theRecipient;
+
+		//allow users chose if they want to send coins with username or address
+		if (method === 'username') {
+			//check if the recipient exists.
+			theRecipient = await User.findOne({ username: recipient }).select('+wallet');
+			if (!theRecipient) return res.status(400).send(`Couldn't find a user with the username ${recipient}`);
+
+			//prevent the user from sending to their self.
+			if (user.username === theRecipient.username)
+				return res.status(400).send(`You cannot send ${coin} to yourself`);
+
+			//check if the recipient has a wallet.
+			recipientWallet = await Wallet.findOne({ user: theRecipient._id });
+			if (!recipientWallet) return res.status(400).send('The recipient does not have a wallet.');
+
+			//check if the user has the coin is already in the wallet.
+			recipientCoin = await Coin.findOne({ wallet: recipientWallet, coin: coin });
+			if (!recipientCoin) return res.status(400).send(`Recipient doesn't have ${coin}`);
+		} else if (method === 'address') {
+			//prevent the user from sending to their self.
+			if (userCoin._id == recipient) return res.status(400).send(`You cannot send ${coin} to yourself`);
+			//check if the recipient exists.
+			recipientCoin = await Coin.findById(recipient);
+			if (!recipientCoin) return res.status(400).send(`Couldn't find ${coin} with that address`);
+
+			//make sure the recipientCoin matches the coin coming in.
+			if (coin !== recipientCoin.coin) return res.status(400).send(`Here on Apex, that is a ${recipientCoin.coin} address, gotta be careful <3`);
+
+			//check if the recipient has a wallet.
+			recipientWallet = await Wallet.findById(recipientCoin.wallet);
+			if (!recipientWallet) return res.status(400).send('The recipient does not have a wallet.');
+
+			//find the user so we can get the username.
+			theRecipient = await User.findById(recipientWallet.user);
+			if (!theRecipient) return res.status(400).send(`Couldn't find a user with the username ${recipient}`);
+		}
+
+		//continue trying to send coins.
 		let userBalance = userCoin.balance;
 		let recipientBalance = recipientCoin.balance;
 
@@ -254,9 +290,15 @@ router.post('/send', Auth, async (req, res) => {
 		const userTransaction = await new Transaction({
 			coin: coin,
 			amount: amount,
+			symbol: symbol,
 			type: 'Sent',
 			value: amount,
-			name: `${theRecipient.username} (${coin})`,
+			name: method === 'username' ? theRecipient.username : recipientCoin._id,
+			memo: memo
+				? memo
+				: method === 'username'
+				? `Transfer to ${theRecipient.username}`
+				: `Transfer to ${recipientCoin._id}`,
 		});
 
 		//save the transaction
@@ -268,9 +310,15 @@ router.post('/send', Auth, async (req, res) => {
 		const recipientTransaction = await new Transaction({
 			coin: coin,
 			amount: amount,
+			symbol: symbol,
 			type: 'Received',
 			value: amount,
-			name: `${user.username} (${coin})`,
+			name: method === 'username' ? user.username : userCoin._id, //set the transaction name based on the method used.
+			memo: memo
+				? memo
+				: method === 'username'
+				? `Transfer from ${user.username}`
+				: `Transfer from ${userCoin._id}`,
 		});
 
 		//save the transaction
@@ -289,14 +337,26 @@ router.post('/convert', Auth, async (req, res) => {
 	//get the coinFrom, amount and coinTo.
 	//check the coingecko sdk to see if theres a conversion method.
 	//else sell coinFrom as USD, then buy coinTo with the USD.
-});
+	const { coinFrom, amount, coinTo } = req.body;
+	if (!coinFrom || !amount || !coinTo) return res.status(400).send('Please enter the required fields');
 
-//request coin from another user.
-router.post('/request-coin', Auth, async (req, res) => {
-	//requires amount and the person to request from.
-	//use nodemailer to send a notification.
-	//create a notifications model that stores all notifications of the logged in user.
-	//try to allow auto payments with a single click
+	try {
+		async function getCoinPrice(coin1, coin2) {
+			const data = await CoinGeckoClient.simple.price({
+				ids: [coin1, coin2],
+				vs_currencies: ['usd'],
+			});
+			var coinFromPrice = await data['data'][`${coin1}`]['usd'];
+			var coinToPrice = await data['data'][`${coin2}`]['usd'];
+			return { coinFromPrice, coinToPrice };
+		}
+
+		const bro = await getCoinPrice(coinFrom, coinTo);
+		console.log(bro.coinFromPrice);
+		return res.status(200).send('Bro ' + bro.coinFromPrice);
+	} catch (error) {
+		return res.status(500).send(error.message);
+	}
 });
 
 //get the coins.

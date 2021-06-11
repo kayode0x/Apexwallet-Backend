@@ -14,17 +14,23 @@ const transactionSchema = new mongoose.Schema({
 		type: Number,
 		required: true,
 	},
-    value: {
-        type: Number,
-        required: true,
-    },
+	// value: {
+	// 	type: Number,
+	// 	required: true,
+	// },
+	symbol: {
+		type: String,
+	},
 	type: {
 		type: String,
 		required: true,
 	},
-    name: {
-        type: String,
-    },
+	name: {
+		type: String,
+	},
+	memo: {
+		type: String,
+	},
 });
 
 const Transaction = mongoose.model('Transaction', transactionSchema);
