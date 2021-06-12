@@ -108,7 +108,15 @@ router.put('/verify', async (req, res) => {
 		//finally save the user
 		await user.save();
 
-		res.status(200).send('Account verified 🚀')
+		const token = await jwt.sign({ user: user._id }, process.env.JWT_SECRET);
+		res.status(200)
+			.cookie('jwt_token', token, {
+				httpOnly: true,
+				path: '/',
+				sameSite: 'none',
+				secure: true,
+			})
+			.send('Account verified 🚀');
 	} catch (error) {
 		res.status(500).send(error.message);
 	}
