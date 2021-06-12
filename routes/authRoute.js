@@ -125,11 +125,11 @@ router.put('/verify', async (req, res) => {
 //log a user in
 router.post('/login', async (req, res) => {
 	try {
-		const { email, password } = req.body;
-		if (!email || !password) return res.status(400).send('Please fill in your email and password');
+		const { username, password } = req.body;
+		if (!username || !password) return res.status(400).send('Please fill in your username and password');
 
 		//check if user exists
-		const user = await User.findOne({ email: email }).select('+password');
+		const user = await User.findOne({ username: username }).select('+password');
 		if (!user) return res.status(400).send('Invalid credentials provided');
 
 		//check if the password matches
