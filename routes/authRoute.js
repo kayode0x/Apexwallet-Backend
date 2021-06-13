@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const usernameRegex = /^[a-zA-Z]+$/;
 const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 const sendEmail = require('../utils/sendEmail');
+const Auth = require('../auth/auth')
 
 //create a new user
 router.post('/signup', async (req, res) => {
@@ -62,7 +63,7 @@ router.post('/signup', async (req, res) => {
             <p>Hi there ${req.body.username.toUpperCase()}!, welcome to Apex 🚀</p>
             <p>Before doing anything, we recommend verifying your account to use most of the features available.</p>
             <a href="${verificationURL}" clicktracking=off>Verify Account</a>
-            <p>Apex Team. 🚀</p>
+            <p>Apex Wallet. 🚀</p>
         `;
 
 		try {
@@ -97,7 +98,13 @@ router.put('/verify', async (req, res) => {
 		//find the user by the verification token
 		const user = await User.findOne({ verifyEmailToken: verifyEmailToken }).select('+verifyEmailToken');
 
-		if (!user) return res.status(404).send("Your account has already been verified.")
+		if (!user) return res.status(404).send('Your account has already been verified.');
+
+		//prevent active users from trying to verify their account again
+		if(user.isActive === true) {
+			user.verifyEmailToken = undefined;
+			return res.status(400).send('Your account has already been verified.');
+		}
 
 		//then change the user's status to active
 		user.isActive = true;
@@ -121,6 +128,51 @@ router.put('/verify', async (req, res) => {
 		res.status(500).send(error.message);
 	}
 });
+
+router.post('/resend-verification-link', Auth, async (req, res) => {
+	try {
+		const user = await User.findById(req.user).select('+email');
+		if (!user) return res.status(400).send('Please login');
+
+		if(user.isActive === true) {
+			return res.status(400).send('Account has already been verified');
+		}
+
+		const verificationToken = user.getVerifyEmailToken();
+
+		await user.save();
+
+		const apexURL = 'https://apexwallet.app';
+
+		//send email verification link
+		const verificationURL = `${apexURL}/verify?token=${verificationToken}`;
+
+		const message = `
+            <p>Hi there ${user.username.toUpperCase()}!,</p>
+            <p>Here's a new link to verify your account.</p>
+            <a href="${verificationURL}" clicktracking=off>Verify Account</a>
+            <p>Apex Wallet. 🚀</p>
+        `;
+
+		try {
+			await sendEmail({
+				to: user.email,
+				subject: 'Verification Link 🚀',
+				text: message,
+			});
+
+			res.status(200).send('Verification Link Sent!');
+		} catch (error) {
+			user.verifyEmailToken = undefined;
+
+			await user.save();
+
+			return res.status(500).send("Couldn't send the verification email");
+		}
+	} catch (error) {
+		res.status(500).send(error.message);
+	}
+})
 
 //log a user in
 router.post('/login', async (req, res) => {
