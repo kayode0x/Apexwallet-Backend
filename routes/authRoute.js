@@ -244,7 +244,7 @@ router.post('/forgot-password', async (req, res) => {
 
 		//check if the user exists
 		const user = await User.findOne({ email: email }).select('+email');
-		if (!user) return res.status(400).send("Couldn't send the reset email. User not found..");
+		if (!user) return res.status(400).send("Couldn't send the reset email. User not found");
 
 		const resetToken = user.getResetPasswordToken();
 
@@ -254,16 +254,22 @@ router.post('/forgot-password', async (req, res) => {
 
 		const resetUrl = `${apexURL}/reset?token=${resetToken}`;
 
+		const capitalize = (name) => {
+			const lower = name.toLowerCase();
+			return name.charAt(0).toUpperCase() + lower.slice(1);
+		}
+
 		const message = `
-            <p>Hi there,</p>
+            <p>Hi ${user.name ? capitalize(user.name) : user.username}</p>
             <p>We heard you are having problems with your password.</p>
-            <p>Click this <a href="${resetUrl}" clicktracking=off>link</a> to reset your password, link expires in 10 minutes.</p>  
+            <p>Click on the link below to reset your password, link expires in 10 minutes.</p>  
+			<a href="${resetUrl}" clicktracking=off>Reset Password</a>
         `;
 
 		try {
 			await sendEmail({
 				to: user.email,
-				subject: 'Password Reset Request',
+				subject: 'Password Reset',
 				text: message,
 			});
 
