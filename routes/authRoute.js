@@ -3,18 +3,17 @@ const User = require('../models/userModel');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const usernameRegex = /^[a-zA-Z]+$/;
+const usernameRegex = /^[a-z0-9]+$/i;
 const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 const sendEmail = require('../utils/sendEmail');
-const Auth = require('../auth/auth')
+const Auth = require('../auth/auth');
 
 //create a new user
 router.post('/signup', async (req, res) => {
 	try {
 		//first check if the required fields are present
 		const { username, email, password } = req.body;
-		if (!username || !email || !password)
-			return res.status(400).send('Please fill in the required fields');
+		if (!username || !email || !password) return res.status(400).send('Please fill in the required fields');
 
 		//check if the email exists
 		const existingEmail = await User.findOne({ email: req.body.email });
@@ -31,16 +30,19 @@ router.post('/signup', async (req, res) => {
 		//username regex
 		if (username.length < 2 || username.length > 20)
 			return res.status(400).send('Username must be between 2 and 20 characters long');
+
+		//check if the username contains only numbers
+		if (Number(username)) return res.status(400).send('Username cannot contain only numbers');
+
 		const matchesUsername = username.match(usernameRegex);
-		if (!matchesUsername) return res.status(400).send('Please pick an alphabet only username.');
+		if (!matchesUsername) return res.status(400).send('Username can only contain letters and numbers');
 
 		//password regex
-		if (password.length < 6)
-			return res.status(400).send('Password must be at least 6 characters long');
+		if (password.length < 6) return res.status(400).send('Password must be at least 6 characters long');
 
 		//save the user
 		const newUser = await new User({
-			username: req.body.username,
+			username: req.body.username.toLowerCase(),
 			email: req.body.email,
 			password: bcrypt.hashSync(req.body.password, 10),
 		});
@@ -75,7 +77,10 @@ router.post('/signup', async (req, res) => {
 
 			res.status(201)
 				.cookie('jwt_token', token, {
-					httpOnly: true, path:'/', sameSite: 'none', secure: true
+					httpOnly: true,
+					path: '/',
+					sameSite: 'none',
+					secure: true,
 				})
 				.send();
 		} catch (error) {
@@ -101,7 +106,7 @@ router.put('/verify', async (req, res) => {
 		if (!user) return res.status(404).send('Your account has already been verified.');
 
 		//prevent active users from trying to verify their account again
-		if(user.isActive === true) {
+		if (user.isActive === true) {
 			user.verifyEmailToken = undefined;
 			return res.status(400).send('Your account has already been verified.');
 		}
@@ -134,7 +139,7 @@ router.post('/resend-verification-link', Auth, async (req, res) => {
 		const user = await User.findById(req.user).select('+email');
 		if (!user) return res.status(400).send('Please login');
 
-		if(user.isActive === true) {
+		if (user.isActive === true) {
 			return res.status(400).send('Account has already been verified');
 		}
 
@@ -172,7 +177,7 @@ router.post('/resend-verification-link', Auth, async (req, res) => {
 	} catch (error) {
 		res.status(500).send(error.message);
 	}
-})
+});
 
 //log a user in
 router.post('/login', async (req, res) => {
@@ -238,7 +243,6 @@ router.post('/logout', async (req, res) => {
 router.post('/forgot-password', async (req, res) => {
 	const { email } = req.body;
 	try {
-
 		//check if an email is sent
 		if (!email) return res.status(400).send('Please provide an email address');
 
@@ -257,7 +261,7 @@ router.post('/forgot-password', async (req, res) => {
 		const capitalize = (name) => {
 			const lower = name.toLowerCase();
 			return name.charAt(0).toUpperCase() + lower.slice(1);
-		}
+		};
 
 		const message = `
             <p>Hi ${user.name ? capitalize(user.name) : user.username}</p>
@@ -322,11 +326,10 @@ router.put('/reset-password/', async (req, res) => {
 		//finally save the user
 		await user.save();
 
-		res.status(200).send("Password reset success. 🚀");
+		res.status(200).send('Password reset success. 🚀');
 	} catch (error) {
 		res.status(500).send(error.message);
 	}
 });
-
 
 module.exports = router;
