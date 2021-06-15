@@ -32,7 +32,7 @@ router.post('/signup', async (req, res) => {
 			return res.status(400).send('Username must be between 2 and 20 characters long');
 
 		//check if the username contains only numbers
-		if (Number(username)) return res.status(400).send('Username cannot contain only numbers');
+		if (Number(username) || Number(username) === 0) return res.status(400).send('Username cannot contain only numbers');
 
 		const matchesUsername = username.match(usernameRegex);
 		if (!matchesUsername) return res.status(400).send('Username can only contain letters and numbers');
