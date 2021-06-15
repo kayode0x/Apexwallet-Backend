@@ -18,6 +18,7 @@ const corsOptions = {
 		'https://apexx.netlify.app',
 		'http://192.168.1.98:3000',
 		'http://localhost:3000',
+		'http://localhost:3001',
 	],
 	credentials: true,
 	exposedHeaders: ['set-cookie'],
