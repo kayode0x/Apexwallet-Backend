@@ -45,7 +45,7 @@ const coinSymbol = (coin) => {
 	} else if (coin === 'dash') {
 		symbol = 'DASH';
 		return symbol;
-	} else return null;
+	} else return null
 }
 
 module.exports = coinSymbol;
