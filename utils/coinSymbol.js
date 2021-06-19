@@ -45,6 +45,21 @@ const coinSymbol = (coin) => {
 	} else if (coin === 'dash') {
 		symbol = 'DASH';
 		return symbol;
+	} else if (coin === 'decentraland'){
+		symbol = 'MANA';
+		return symbol;
+	} else if (coin === 'shiba-inu'){
+		symbol = 'SHIB';
+		return symbol;
+	} else if (coin === 'stellar') {
+		symbol = 'XLM';
+		return symbol;
+	} else if (coin === 'chainlink'){
+		symbol = 'LINK'
+		return symbol;
+	} else if (coin === 'solana'){
+		symbol = 'SOL'
+		return symbol;
 	} else return null
 }
 

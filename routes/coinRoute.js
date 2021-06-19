@@ -58,7 +58,52 @@ router.post('/buy', Auth, async (req, res) => {
 
 		//check if the coin is already in the wallet, to prevent doubling.
 		const coinExists = await Coin.findOne({ wallet: wallet, coin: coin });
-		if (!coinExists) return res.status(400).send(`${coin} is not supported.`);
+
+		//if the coin doesn't exist in the wallet, create it.
+		if (!coinExists) {
+			walletBalance = await Number(wallet.balance);
+			//prevent buying more coin(s) than what is in the wallet,
+			if (amount < 2) return res.status(400).send(`${amount} is too low. You can only buy a minimum of 2 USD`);
+			if (Number(amount) > walletBalance) return res.status(400).send(`Can not buy more than ${walletBalance}`);
+
+			//get the current coin you are trying to buy's price
+			newCoinPrice = await getCoinPrice(coin);
+
+			//then convert the coin price to the crypto equivalent.
+			newAmount = (await Number(amount)) / newCoinPrice;
+
+			//deduct from the wallet
+			newWalletBalance = (await walletBalance) - Number(amount);
+
+			const newCoin = await new Coin({
+				wallet: user.wallet,
+				coin: req.body.coin,
+				balance: newAmount,
+			});
+
+			//only update balance from a triggered account, don't user PUT/PATCH.
+			wallet.balance = newWalletBalance;
+			await wallet.save();
+			const savedCoin = await newCoin.save();
+			await wallet.coins.push(savedCoin);
+			await wallet.save();
+
+			//create a new transaction
+			const transaction = await new Transaction({
+				coin: coin,
+				amount: amount,
+				type: 'Bought',
+				value: newAmount,
+				name: `${parseFloat(newAmount).toFixed(6)} ${symbol}`,
+			});
+
+			//save the transaction
+			const newTransaction = await transaction.save();
+			await wallet.transactions.push(newTransaction);
+			await wallet.save();
+
+			return res.status(200).send(newTransaction);
+		}
 
 		walletBalance = await Number(wallet.balance);
 		coinBalance = await Number(coinExists.balance);
