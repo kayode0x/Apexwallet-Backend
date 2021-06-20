@@ -4,6 +4,7 @@ const Wallet = require('../models/walletModel');
 const Auth = require('../auth/auth');
 const Coin = require('../models/coinModel');
 const Transaction = require('../models/transactionModel');
+const Message = require('../models/messageModel');
 const supportedCoins = require('../utils/supportedCoins');
 
 //create a new wallet.
@@ -175,6 +176,18 @@ router.post('/send-cash', Auth, async (req, res) => {
 		const newRecipientTransaction = await recipientTransaction.save();
 		await recipientWallet.transactions.push(newRecipientTransaction);
 		await recipientWallet.save();
+
+		//send an alert to the recipient
+		const message = await new Message({
+			title: `${user.name ? user.name : user.username} sent you $${amount}`,
+			text: memo ? memo : `$${amount} has been credited to your wallet, should show up in no time.`,
+			user: theRecipient._id,
+		});
+
+		//save the message
+		const newMessage = await message.save();
+		await theRecipient.messages.push(newMessage);
+		await theRecipient.save();
 
 		res.status(200).send(userTransaction);
 	} catch (error) {

@@ -3,6 +3,7 @@ const User = require('../models/userModel');
 const Wallet = require('../models/walletModel');
 const Transaction = require('../models/transactionModel');
 const Coin = require('../models/coinModel');
+const Message = require('../models/messageModel');
 const Auth = require('../auth/auth');
 const supportedCoins = require('../utils/supportedCoins');
 const coinSymbol = require('../utils/coinSymbol');
@@ -367,11 +368,25 @@ router.post('/send', Auth, async (req, res) => {
 		await recipientWallet.transactions.push(newRecipientTransaction);
 		await recipientWallet.save();
 
+		//send an alert to the recipient
+		const message = await new Message({
+			title: `${user.name ? user.name : user.username} sent you ${amount} ${symbol}`,
+			text: memo ? memo : 'The transaction has been completed, and should show up in no time.',
+			user: theRecipient._id,
+		});
+
+		//save the message
+		const newMessage = await message.save();
+		await theRecipient.messages.push(newMessage);
+		await theRecipient.save();
+
 		return res.status(200).send(newUserTransaction);
 	} catch (error) {
 		res.status(500).send(error.message);
 	}
 });
+
+//lock some amount of coin.
 
 //convert coins.
 router.post('/convert', Auth, async (req, res) => {

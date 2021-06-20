@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs');
 //get user
 router.get('/', Auth, async (req, res) => {
 	try {
-		const user = await User.findById(req.user).select('+wallet +email').populate('wallet');
+		const user = await User.findById(req.user).select('+wallet +email').populate('wallet messages');
 		if (!user) return res.status(400).send('Please log in.');
 		res.status(200).send(user);
 	} catch (error) {

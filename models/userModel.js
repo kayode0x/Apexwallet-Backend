@@ -49,7 +49,13 @@ const userSchema = new mongoose.Schema({
 		{
 			name: String,
 			coinId: String,
-		}
+		},
+	],
+	messages: [
+		{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Message',
+		},
 	],
 	cardDesign: {
 		type: String,
