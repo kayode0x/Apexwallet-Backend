@@ -386,8 +386,6 @@ router.post('/send', Auth, async (req, res) => {
 	}
 });
 
-//lock some amount of coin.
-
 //convert coins.
 router.post('/convert', Auth, async (req, res) => {
 	//get the coinFrom, amount and coinTo.
