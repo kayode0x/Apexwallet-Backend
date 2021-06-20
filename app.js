@@ -32,6 +32,7 @@ const userRoute = require('./routes/userRoute');
 const walletRoute = require('./routes/walletRoute');
 const coinRoute = require('./routes/coinRoute');
 const authRoute = require('./routes/authRoute');
+const messageRoute = require('./routes/messageRoute');
 
 
 //routes
@@ -39,6 +40,7 @@ app.use('/api/v1/user', userRoute);
 app.use('/api/v1/wallet', walletRoute);
 app.use('/api/v1/coin', coinRoute);
 app.use('/api/v1/auth', authRoute);
+app.use('/api/v1/message', messageRoute);
 
 
 //api endpoint.
