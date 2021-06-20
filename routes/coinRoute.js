@@ -373,6 +373,7 @@ router.post('/send', Auth, async (req, res) => {
 			title: `${user.name ? user.name : user.username} sent you ${amount} ${symbol}`,
 			text: memo ? memo : 'The transaction has been completed, and should show up in no time.',
 			user: theRecipient._id,
+			redirect: `/prices/${coin}`
 		});
 
 		//save the message

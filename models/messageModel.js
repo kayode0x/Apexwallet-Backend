@@ -19,12 +19,8 @@ const messageSchema = new mongoose.Schema({
 		type: Boolean,
 		default: false,
 	},
-	price: {
-		//eg amount of BTC you received
-		type: String,
-	},
-	value: {
-		//eg BTC value to USD
+	redirect: {
+		//eg where to redirect the user to onClick
 		type: String,
 	},
 	user: {

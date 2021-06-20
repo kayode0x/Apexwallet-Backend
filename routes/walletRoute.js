@@ -182,6 +182,7 @@ router.post('/send-cash', Auth, async (req, res) => {
 			title: `${user.name ? user.name : user.username} sent you $${amount}`,
 			text: memo ? memo : `$${amount} has been credited to your wallet, should show up in no time.`,
 			user: theRecipient._id,
+			redirect: `/wallet`,
 		});
 
 		//save the message
