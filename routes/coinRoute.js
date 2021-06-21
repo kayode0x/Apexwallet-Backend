@@ -371,7 +371,7 @@ router.post('/send', Auth, async (req, res) => {
 		//send an alert to the recipient
 		const message = await new Message({
 			title: `${user.name ? user.name : user.username} sent you ${amount} ${symbol}`,
-			text: memo ? memo : 'The transaction has been completed, and should show up in no time.',
+			text: memo ? memo : `The transaction has been completed, ${amount} ${symbol} will show up in no time.`,
 			user: theRecipient._id,
 			redirect: `/prices/${coin}`
 		});

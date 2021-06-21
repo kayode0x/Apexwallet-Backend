@@ -45,6 +45,11 @@ const userSchema = new mongoose.Schema({
 		required: true,
 		default: false,
 	},
+	isAdmin: {
+		type: Boolean,
+		required: true,
+		default: false,
+	},
 	watchList: [
 		{
 			name: String,

@@ -10,6 +10,9 @@ const messageSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
+	image : {
+		type: String,
+	},
 	date: {
 		type: Date,
 		default: Date.now,
@@ -22,6 +25,14 @@ const messageSchema = new mongoose.Schema({
 	redirect: {
 		//eg where to redirect the user to onClick
 		type: String,
+	},
+	from: {
+		//eg admin/'s username
+		type: String,
+	},
+	hasModal: {
+		type: Boolean, // eg if it's supposed to pop up with more information.
+		default: false,
 	},
 	user: {
 		type: mongoose.Schema.Types.ObjectId,

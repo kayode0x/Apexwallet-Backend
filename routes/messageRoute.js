@@ -1,4 +1,5 @@
 const Message = require('../models/messageModel');
+const User = require('../models/userModel');
 const Auth = require('../auth/auth');
 const router = require('express').Router();
 
@@ -11,8 +12,43 @@ router.put('/open-message', Auth, async (req, res) => {
 		if (!message) return res.status(400).send('Message not found');
 
 		message.isRead = true;
-        await message.save();
+		await message.save();
 		return res.status(200).send();
+	} catch (error) {
+		res.status(500).send(error.message);
+	}
+});
+
+router.post('/', Auth, async (req, res) => {
+	try {
+		const { title, text, from, redirect, hasModal, image } = req.body;
+		if (!title || !text) return res.status(400).send('Please add a broadcast message');
+
+		const userExists = await User.findById(req.user);
+		if (!userExists) return res.status(400).send('Please log in');
+		if (userExists.isAdmin !== true) return res.status(400).send('You are not an administrator');
+
+		const users = await User.find({});
+
+		const sendBroadCast = async (user) => {
+			const message = await new Message({
+				title: title,
+				text: text,
+				user: user._id,
+				from: from ? from : userExists.username,
+				redirect: redirect && `/${redirect}`,
+                hasModal: hasModal,
+                image: image && image
+			});
+
+			//save the message
+			const newMessage = await message.save();
+			await user.messages.push(newMessage);
+			await user.save();
+		};
+		users.forEach((user) => sendBroadCast(user));
+		return res.status(200).send('Success');
+
 	} catch (error) {
 		res.status(500).send(error.message);
 	}
