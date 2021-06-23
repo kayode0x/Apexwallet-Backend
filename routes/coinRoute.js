@@ -373,7 +373,7 @@ router.post('/send', Auth, async (req, res) => {
 			title: `${user.name ? user.name : user.username} sent you ${amount} ${symbol}`,
 			text: memo ? memo : `The transaction has been completed, ${amount} ${symbol} will show up in no time.`,
 			user: theRecipient._id,
-			redirect: `/prices/${coin}`
+			redirect: `/prices/${coin}`,
 		});
 
 		//save the message
@@ -387,15 +387,28 @@ router.post('/send', Auth, async (req, res) => {
 	}
 });
 
-//convert coins.
-router.post('/convert', Auth, async (req, res) => {
-	//get the coinFrom, amount and coinTo.
-	//check the coingecko sdk to see if theres a conversion method.
-	//else sell coinFrom as USD, then buy coinTo with the USD.
-	const { coinFrom, amount, coinTo } = req.body;
-	if (!coinFrom || !amount || !coinTo) return res.status(400).send('Please enter the required fields');
-
+//get the current prices for conversion.
+router.get('/convert', Auth, async (req, res) => {
 	try {
+		//get the logged in user.
+		const user = await User.findById(req.user).select('+wallet').populate('wallet');
+		if (!user) return res.status(400).send('Please log in');
+
+		const { coinFrom, amount, coinTo } = req.body;
+		if (!coinFrom || !amount || !coinTo) return res.status(400).send('Please enter the required fields');
+
+		//check if the coinFrom and coinTo are supported.
+		const isCoinSupported = supportedCoins.includes(coinFrom) && supportedCoins.includes(coinTo);
+		if (isCoinSupported === false)
+			return res.status(400).send(`We do not currently support either ${coinFrom} or ${coinTo}`);
+
+		//check if the coinFrom and coinTo are the same.
+		if (coinFrom === coinTo) return res.status(400).send('You cannot convert the same coin');
+
+		//get the symbols of the coinTo.
+		const symbolTo = coinSymbol(coinTo);
+
+		//get the current prices of both coins
 		async function getCoinPrice(coin1, coin2) {
 			const data = await CoinGeckoClient.simple.price({
 				ids: [coin1, coin2],
@@ -405,10 +418,100 @@ router.post('/convert', Auth, async (req, res) => {
 			var coinToPrice = await data['data'][`${coin2}`]['usd'];
 			return { coinFromPrice, coinToPrice };
 		}
+		const currentPrices = await getCoinPrice(coinFrom, coinTo);
 
-		const bro = await getCoinPrice(coinFrom, coinTo);
-		console.log(bro.coinFromPrice);
-		return res.status(200).send('Bro ' + bro.coinFromPrice);
+		//get the current price from the amount in USD
+		const coinFromPrice = currentPrices.coinFromPrice * amount;
+
+		//convert the coinFromPrice to the coinTo equivalent.
+		const coinToPrice = parseFloat(coinFromPrice / currentPrices.coinToPrice).toFixed(5);
+
+		const currentCoinToPrice = { coinToPrice, symbolTo };
+
+		return res.status(200).send(currentCoinToPrice);
+	} catch (error) {
+		return res.status(500).send(error.message);
+	}
+});
+
+//convert coins.
+router.post('/convert', Auth, async (req, res) => {
+	try {
+		//get the logged in user.
+		const user = await User.findById(req.user).select('+wallet').populate('wallet');
+		if (!user) return res.status(400).send('Please log in');
+
+		const { coinFrom, amount, coinTo } = req.body;
+		if (!coinFrom || !amount || !coinTo) return res.status(400).send('Please enter the required fields');
+
+		//check if the coinFrom and coinTo are supported.
+		const isCoinSupported = supportedCoins.includes(coinFrom) && supportedCoins.includes(coinTo);
+		if (isCoinSupported === false)
+			return res.status(400).send(`We do not currently support either ${coinFrom} or ${coinTo}`);
+
+		//check if the coinFrom and coinTo are the same.
+		if (coinFrom === coinTo) return res.status(400).send('You cannot convert the same coin');
+
+		//get the user's coinFrom and coinTo.
+		const userCoinFrom = await Coin.findOne({ wallet: user.wallet, coin: coinFrom });
+		const userCoinTo = await Coin.findOne({ wallet: user.wallet, coin: coinTo });
+
+		if (!userCoinFrom || !userCoinTo) return res.status(400).send(`You do not own either ${coinFrom} or ${coinTo}`);
+
+		//get the symbols of both coins.
+		const symbolFrom = coinSymbol(coinFrom);
+		const symbolTo = coinSymbol(coinTo);
+
+		//check if the amount is greater than the user's balance or lower than 0.
+		if (amount > userCoinFrom.balance)
+			return res
+				.status(400)
+				.send(`You have ${userCoinFrom.balance} ${symbolFrom} you can't convert more than that.`);
+		if (amount <= 0) return res.status(400).send(`You cannot convert below 0 ${symbolFrom}`);
+
+		//get the current prices of both coins
+		async function getCoinPrice(coin1, coin2) {
+			const data = await CoinGeckoClient.simple.price({
+				ids: [coin1, coin2],
+				vs_currencies: ['usd'],
+			});
+			var coinFromPrice = await data['data'][`${coin1}`]['usd'];
+			var coinToPrice = await data['data'][`${coin2}`]['usd'];
+			return { coinFromPrice, coinToPrice };
+		}
+		const currentPrices = await getCoinPrice(coinFrom, coinTo);
+
+		//get the current price from the amount in USD
+		const coinFromPrice = currentPrices.coinFromPrice * amount;
+
+		//convert the coinFromPrice to the coinTo equivalent.
+		const coinToPrice = coinFromPrice / currentPrices.coinToPrice;
+
+		//deduct the amount from the userCoinFrom.balance
+		let coinFromBalance = userCoinFrom.balance - amount;
+		userCoinFrom.balance = coinFromBalance;
+		await userCoinFrom.save();
+
+		//add to the userCoinTo.balance
+		let coinToBalance = userCoinTo.balance + coinToPrice;
+		userCoinTo.balance = coinToBalance;
+		await userCoinTo.save();
+
+		//save the transaction
+		const transaction = await new Transaction({
+			coin: coinFrom,
+			amount: amount,
+			symbol: symbolFrom,
+			type: 'Converted',
+			value: coinToPrice,
+			name: `Converted ${amount} ${symbolFrom} to ${symbolTo}`,
+		});
+
+		const newTransaction = await transaction.save();
+		await user.wallet.transactions.push(newTransaction);
+		await user.wallet.save();
+
+		return res.status(200).send(newTransaction);
 	} catch (error) {
 		return res.status(500).send(error.message);
 	}
