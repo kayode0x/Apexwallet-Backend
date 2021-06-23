@@ -395,7 +395,9 @@ router.get('/convert', Auth, async (req, res) => {
 		if (!user) return res.status(400).send('Please log in');
 
 		const { coinFrom, amount, coinTo } = req.body;
-		if (!coinFrom || !amount || !coinTo) return res.status(400).send('Please enter the required fields');
+		if (!coinFrom) return res.status(400).send("Please enter the coin you're converting from");
+		if (!amount) return res.status(400).send("Please enter the amount you're converting");
+		if (!coinTo) return res.status(400).send("Please enter the coin you're converting to");
 
 		//check if the coinFrom and coinTo are supported.
 		const isCoinSupported = supportedCoins.includes(coinFrom) && supportedCoins.includes(coinTo);
