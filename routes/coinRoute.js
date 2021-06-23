@@ -388,7 +388,7 @@ router.post('/send', Auth, async (req, res) => {
 });
 
 //get the current prices for conversion.
-router.get('/convertPrice', Auth, async (req, res) => {
+router.post('/convertPrice', Auth, async (req, res) => {
 	try {
 		//get the logged in user.
 		const user = await User.findById(req.user).select('+wallet').populate('wallet');
