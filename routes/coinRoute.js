@@ -408,7 +408,7 @@ router.post('/convertPrice', Auth, async (req, res) => {
 		if (coinFrom === coinTo) return res.status(400).send('You cannot convert the same coin');
 
 		//get the symbols of the coinTo.
-		const symbolTo = coinSymbol(coinTo);
+		const symbol = coinSymbol(coinTo);
 
 		//get the current prices of both coins
 		async function getCoinPrice(coin1, coin2) {
@@ -426,9 +426,9 @@ router.post('/convertPrice', Auth, async (req, res) => {
 		const coinFromPrice = currentPrices.coinFromPrice * amount;
 
 		//convert the coinFromPrice to the coinTo equivalent.
-		const coinToPrice = parseFloat(coinFromPrice / currentPrices.coinToPrice).toFixed(5);
+		const price = parseFloat(coinFromPrice / currentPrices.coinToPrice).toFixed(5);
 
-		const currentCoinToPrice = { coinToPrice, symbolTo };
+		const currentCoinToPrice = { price, symbol };
 
 		return res.status(200).send(currentCoinToPrice);
 	} catch (error) {
