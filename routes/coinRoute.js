@@ -388,13 +388,16 @@ router.post('/send', Auth, async (req, res) => {
 });
 
 //get the current prices for conversion.
-router.get('/convert', Auth, async (req, res) => {
+router.get('/convertPrice', Auth, async (req, res) => {
 	try {
 		//get the logged in user.
 		const user = await User.findById(req.user).select('+wallet').populate('wallet');
 		if (!user) return res.status(400).send('Please log in');
 
 		const { coinFrom, amount, coinTo } = req.body;
+		if (!coinFrom) return res.status(400).send("Please enter the coin you're converting from");
+		if (!amount) return res.status(400).send("Please enter the amount you're converting");
+		if (!coinTo) return res.status(400).send("Please enter the coin you're converting to");
 
 		//check if the coinFrom and coinTo are supported.
 		const isCoinSupported = supportedCoins.includes(coinFrom) && supportedCoins.includes(coinTo);
