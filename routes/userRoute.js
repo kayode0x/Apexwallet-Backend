@@ -2,16 +2,7 @@ const router = require('express').Router();
 const User = require('../models/userModel');
 const Auth = require('../auth/auth');
 const bcrypt = require('bcryptjs');
-
-//multer to upload an image.
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
-const { uploadImage, downloadImage } = require('../utils/s3');
-
-//delete an image after upload to s3.
-const fs = require('fs');
-const util = require('util');
-const unlinkFile = util.promisify(fs.unlink);
+const { upload, remove } = require('../utils/image');
 
 //get user
 router.get('/', Auth, async (req, res) => {
@@ -24,40 +15,66 @@ router.get('/', Auth, async (req, res) => {
 	}
 });
 
-//get the user's display image.
-router.get('/image', Auth, async (req, res) => {
+//change the display picture
+router.put('/image', Auth, upload, async (req, res) => {
 	try {
 		const user = await User.findById(req.user);
-		if (!user) return res.status(400).send('Please log in.');
-		const key = user.image;
-		if (!key) return res.status(400).send('');
-		const findImage = await downloadImage(key);
-		findImage.pipe(res);
+		if (!user) return res.status(400).send('Please log in to change your display picture');
+
+		if (req.file) {
+			if (req.file.size > 3145728)
+				return res.status(400).send('Image size is too large, max size allowed is 3MB');
+		}
+
+		upload(req, res, async function (err) {
+			if (req.fileValidationError) {
+				return res.status(400).send(req.fileValidationError);
+			}
+
+			//check if the user uploaded an image
+			const image = req.file;
+			if (!image) return res.status(400).send('Please pick an image');
+
+			//check if the user has an image
+			if (user.image !== '') {
+				//get the image key from the user's image
+				const key = user.image.split('/')[3];
+
+				// call the remove image method
+				await remove(key);
+
+				user.image = '';
+				await user.save();
+			}
+
+			//set the user's image
+			user.image = image.location;
+			await user.save();
+
+			return res.status(200).send('Image uploaded successfully.');
+		});
 	} catch (error) {
 		res.status(500).send(error.message);
 	}
 });
 
-//change the display picture
-router.put('/image', Auth, upload.single('image'), async (req, res) => {
+router.delete('/image', Auth, async (req, res) => {
 	try {
 		const user = await User.findById(req.user);
 		if (!user) return res.status(400).send('Please log in to change your display picture');
 
-		const image = req.file;
-		if (!image) return res.status(400).send('Please pick an image');
+		if (user.image !== '') {
+			//get the image key from the user's image
+			const key = user.image.split('/')[3];
 
-		//upload the new image to s3.
-		const result = await uploadImage(image);
+			// call the remove image method
+			await remove(key);
 
-		//delete the image from apex's server
-		await unlinkFile(image.path);
+			user.image = '';
+			await user.save();
 
-		user.image = result.Key;
-
-		await user.save();
-
-		return res.status(200).send('Image uploaded successfully.');
+			return res.status(200).send('Image deleted successfully.');
+		} else return res.status(400).send("You don't have a display picture.");
 	} catch (error) {
 		res.status(500).send(error.message);
 	}
