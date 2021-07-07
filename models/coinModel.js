@@ -16,12 +16,14 @@ const coinSchema = new mongoose.Schema({
 		min: 0,
 	},
 	availableBalance: {
-		type: Number,
-		min: 0,
-	},
-	locked: {
-		type: Number,
-		min: 0,
+		available: {
+			type: Number,
+			min: 0,
+		},
+		locked: {
+			type: Number,
+			min: 0,
+		},
 	},
 });
 

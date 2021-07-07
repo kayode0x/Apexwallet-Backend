@@ -134,6 +134,8 @@ router.post('/buy', Auth, async (req, res) => {
 
 		coinExists.balance = newCoinBalance;
 		await coinExists.save();
+		coinExists.availableBalance.available = newCoinBalance;
+		await coinExists.save();
 
 		//create a new transaction
 		const transaction = await new Transaction({
@@ -226,6 +228,8 @@ router.post('/sell', Auth, async (req, res) => {
 		await wallet.save();
 
 		coinExists.balance = newCoinBalance;
+		await coinExists.save();
+		coinExists.availableBalance.available = newCoinBalance;
 		await coinExists.save();
 
 		//save the transaction
@@ -332,8 +336,12 @@ router.post('/send', Auth, async (req, res) => {
 		//save the user and recipient wallet balance with the new values.
 		userCoin.balance = newUserBalance;
 		await userCoin.save();
+		userCoin.availableBalance.available = newUserBalance;
+		await userCoin.save();
 
 		recipientCoin.balance = newRecipientBalance;
+		await recipientCoin.save();
+		recipientCoin.availableBalance.available = newRecipientBalance;
 		await recipientCoin.save();
 
 		//create a new user transaction
@@ -497,6 +505,8 @@ router.post('/convert', Auth, async (req, res) => {
 		//add to the userCoinTo.balance
 		let coinToBalance = userCoinTo.balance + coinToPrice;
 		userCoinTo.balance = coinToBalance;
+		await userCoinTo.save();
+		userCoinTo.availableBalance.available = coinToBalance;
 		await userCoinTo.save();
 
 		//save the transaction
