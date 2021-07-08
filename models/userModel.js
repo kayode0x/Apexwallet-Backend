@@ -64,7 +64,7 @@ const userSchema = new mongoose.Schema({
 	],
 	cardDesign: {
 		type: String,
-		default: 'saturnSVG',
+		default: 'type-1',
 	},
 	resetPasswordToken: String,
 	resetPasswordExpire: Date,
