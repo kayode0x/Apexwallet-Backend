@@ -529,21 +529,6 @@ router.post('/convert', Auth, async (req, res) => {
 	}
 });
 
-// router.post('/all', Auth, async (req, res) => {
-// 	try {
-// 		const users = await User.find({});
-// 		const addField = async (user) => {
-// 			let cardType = "type-1";
-// 			user.cardDesign = cardType;
-// 			await user.save();
-// 		};
-// 		users.forEach((user) => addField(user));
-// 		return res.status(200).send(users);
-// 	} catch (error) {
-// 		res.status(500).send(error.message);
-// 	}
-// });
-
 //get the coins.
 router.get('/', Auth, async (req, res) => {
 	try {

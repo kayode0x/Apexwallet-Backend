@@ -7,6 +7,8 @@ const usernameRegex = /^[a-z0-9]+$/i;
 const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 const sendEmail = require('../utils/sendEmail');
 const Auth = require('../auth/auth');
+const Coin = require('../models/coinModel');
+const supportedCoins = require('../utils/supportedCoins');
 
 //create a new user
 router.post('/signup', async (req, res) => {
@@ -32,7 +34,8 @@ router.post('/signup', async (req, res) => {
 			return res.status(400).send('Username must be between 2 and 20 characters long');
 
 		//check if the username contains only numbers
-		if (Number(username) || Number(username) === 0) return res.status(400).send('Username cannot contain only numbers');
+		if (Number(username) || Number(username) === 0)
+			return res.status(400).send('Username cannot contain only numbers');
 
 		const matchesUsername = username.match(usernameRegex);
 		if (!matchesUsername) return res.status(400).send('Username can only contain letters and numbers');
@@ -113,11 +116,76 @@ router.put('/verify', async (req, res) => {
 
 		//then change the user's status to active
 		user.isActive = true;
+		user.level = 2;
 
 		//void the token
 		user.verifyEmailToken = undefined;
 
 		//finally save the user
+		await user.save();
+
+		//check if the user already has a wallet
+		const wallet = await Wallet.findOne({ user: user._id });
+		if (wallet) {
+			const token = await jwt.sign({ user: user._id }, process.env.JWT_SECRET);
+			return res
+				.status(200)
+				.cookie('jwt_token', token, {
+					httpOnly: true,
+					path: '/',
+					sameSite: 'none',
+					secure: true,
+				})
+				.send('Account verified 🚀');
+		}
+
+		//create a new transaction based on the free cash
+		const transaction = await new Transaction({
+			coin: 'USD',
+			amount: 500,
+			type: 'Free',
+			value: 500,
+			name: 'Free',
+		});
+
+		//save the transaction
+		const newTransaction = await transaction.save();
+
+		//finally create a wallet for the user
+		const newWallet = await new Wallet({
+			user: user._id,
+			transactions: [newTransaction],
+		});
+		//save the wallet with the new data
+		const savedWallet = await newWallet.save();
+
+		//also update the user
+		await User.findOneAndUpdate({ _id: user._id }, { wallet: savedWallet }, { new: true });
+		await user.save();
+
+		//on creating a wallet, auto add all the coins we support into the wallet.
+		async function addCoin(coin) {
+			try {
+				const userWallet = await Wallet.findOne({ user: req.user });
+				const newCoins = await new Coin({
+					wallet: userWallet,
+					coin: coin,
+					balance: 0,
+				});
+
+				const savedCoin = await newCoins.save();
+				await userWallet.coins.push(savedCoin);
+				await userWallet.save();
+			} catch (error) {
+				res.status(500).send(error.message);
+			}
+		}
+
+		//call the function to add the coins to the wallet.
+		supportedCoins.forEach(addCoin);
+
+		//update the user's level to max
+		user.level = 3;
 		await user.save();
 
 		const token = await jwt.sign({ user: user._id }, process.env.JWT_SECRET);
