@@ -8,6 +8,7 @@ const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0
 const sendEmail = require('../utils/sendEmail');
 const Auth = require('../auth/auth');
 const Coin = require('../models/coinModel');
+const Wallet = require('../models/walletModel');
 const supportedCoins = require('../utils/supportedCoins');
 
 //create a new user
