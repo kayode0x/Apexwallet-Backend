@@ -9,6 +9,7 @@ const sendEmail = require('../utils/sendEmail');
 const Auth = require('../auth/auth');
 const Coin = require('../models/coinModel');
 const Wallet = require('../models/walletModel');
+const Transaction = require('../models/transactionModel');
 const supportedCoins = require('../utils/supportedCoins');
 
 //create a new user
