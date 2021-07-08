@@ -101,7 +101,7 @@ router.post('/signup', async (req, res) => {
 });
 
 //verify the user's email address
-router.put('/verify', async (req, res) => {
+router.post('/verify', async (req, res) => {
 	const verifyEmailToken = await crypto.createHash('sha256').update(req.body.token).digest('hex');
 
 	try {
@@ -168,7 +168,7 @@ router.put('/verify', async (req, res) => {
 		//on creating a wallet, auto add all the coins we support into the wallet.
 		async function addCoin(coin) {
 			try {
-				const userWallet = await Wallet.findOne({ user: req.user });
+				const userWallet = await Wallet.findOne({ _id: user.wallet });
 				const newCoins = await new Coin({
 					wallet: userWallet,
 					coin: coin,
