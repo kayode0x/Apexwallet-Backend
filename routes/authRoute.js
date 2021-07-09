@@ -163,19 +163,21 @@ router.post('/verify', async (req, res) => {
 
 		//on creating a wallet, auto add all the coins we support into the wallet.
 		async function addCoin(coin) {
-			const newCoins = await new Coin({
-				wallet: savedWallet,
-				coin: coin,
-				balance: 0,
-			});
 
-			const savedCoin = await newCoins.save();
-			await savedWallet.coins.push(savedCoin);
+			await savedWallet.coins.push(
+				await new Coin({
+					wallet: savedWallet,
+					coin: coin,
+					balance: 0,
+				}).save()
+			);
 			await savedWallet.save();
 		}
 
 		//call the function to add the coins to the wallet.
-		await supportedCoins.map(coin => addCoin(coin));
+		for (let i = 0; i < supportedCoins.length; i++) {
+			addCoin(supportedCoins[i]);
+		}
 
 		//also update the user
 		await User.findOneAndUpdate({ _id: user._id }, { wallet: savedWallet }, { new: true });
