@@ -160,28 +160,30 @@ router.post('/verify', async (req, res) => {
 			//save the wallet with the new data
 			const savedWallet = await newWallet.save();
 
-			//on creating a wallet, auto add all the coins we support into the wallet.
-			async function addCoin(coin) {
-				const newCoin = await new Coin({
-					wallet: savedWallet,
-					coin: coin,
-					balance: 0,
-				}).save();
+			//also update the user
+			user.wallet = savedWallet._id;
+			await user.save();
 
-				savedWallet.coins.push(newCoin);
-				savedWallet.save();
-			}
+			//on creating a wallet, auto add all the coins we support into the wallet.
+			const addCoin = async (coin) => {
+				try {
+					const userWallet = await Wallet.findOne({ _id: savedWallet._id });
+					const newCoins = await new Coin({
+						wallet: userWallet,
+						coin: coin,
+						balance: 0,
+					});
+
+					const savedCoin = await newCoins.save();
+					await userWallet.coins.push(savedCoin);
+					await userWallet.save();
+				} catch (error) {
+					res.status(500).send(error.message);
+				}
+			};
 
 			//call the function to add the coins to the wallet.
 			await supportedCoins.forEach(addCoin);
-			savedWallet.save();
-
-			//also update the user
-			await User.findOneAndUpdate({ _id: user._id }, { wallet: savedWallet }, { new: true });
-			await user.save();
-
-			//update the user's level to max
-			user.level = 3;
 			await user.save();
 
 			const token = await jwt.sign({ user: user._id }, process.env.JWT_SECRET);
