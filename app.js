@@ -1,11 +1,10 @@
 const express = require('express');
 const app = express();
 require('dotenv/config');
-const cors = require('cors')
+const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const PORT = process.env.PORT || 9000;
 const mongoose = require('mongoose');
-
 
 //parse all json objects, cookies and use cors.
 app.use(express.json());
@@ -26,7 +25,6 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-
 //import routes
 const userRoute = require('./routes/userRoute');
 const walletRoute = require('./routes/walletRoute');
@@ -34,20 +32,17 @@ const coinRoute = require('./routes/coinRoute');
 const authRoute = require('./routes/authRoute');
 const messageRoute = require('./routes/messageRoute');
 
-
 //routes
-app.use('/api/v1/user', userRoute);
-app.use('/api/v1/wallet', walletRoute);
-app.use('/api/v1/coin', coinRoute);
-app.use('/api/v1/auth', authRoute);
-app.use('/api/v1/message', messageRoute);
-
+app.use('/v1/user', userRoute);
+app.use('/v1/wallet', walletRoute);
+app.use('/v1/coin', coinRoute);
+app.use('/v1/auth', authRoute);
+app.use('/v1/message', messageRoute);
 
 //api endpoint.
-app.get('/', (req, res) =>{
-    res.send('We are live 🚀');
-})
-
+app.get('/', (req, res) => {
+	res.send('We are live 🚀');
+});
 
 //connect to the mongodb
 mongoose.connect(
@@ -66,8 +61,7 @@ mongoose.connect(
 	}
 );
 
-
 //listen
 app.listen(PORT, () => {
-    console.log('Server up and running 🚀')
-})
+	console.log('Server up and running 🚀');
+});

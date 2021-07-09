@@ -50,9 +50,7 @@ router.post('/buy', Auth, async (req, res) => {
 
 		//only active users can buy coins
 		if (user.isActive === false) return res.status(400).send('Verify your account to buy coins 🚀');
-		if (user.wallet === undefined && user.isActive === true) {
-			return res.send('You can open a wallet now to start trading 🚀');
-		}
+
 		//check if the wallet exists
 		const wallet = await Wallet.findOne({ _id: user.wallet }).populate('coins');
 		if (!wallet) return res.status(400).send('No wallet found. Open a wallet to start trading 🚀');
@@ -194,9 +192,7 @@ router.post('/sell', Auth, async (req, res) => {
 
 		//only active users can buy coins
 		if (user.isActive === false) return res.status(400).send('Verify your account to buy coins 🚀');
-		if (user.wallet === undefined && user.isActive === true) {
-			return res.send('You can open a wallet now to start trading 🚀');
-		}
+
 		//check if the wallet exists
 		const wallet = await Wallet.findOne({ _id: user.wallet }).populate('coins');
 		if (!wallet) return res.status(400).send('No wallet found. Open a wallet to start trading 🚀');
@@ -256,7 +252,17 @@ router.post('/send', Auth, async (req, res) => {
 	try {
 		//validate the input.
 		const { coin, amount, recipient, method, memo } = req.body;
-		if (!coin || !amount || !recipient || !method) return res.status(400).send('Please fill in all fields');
+		
+		switch ((!coin, !amount, !recipient, !method)) {
+			case !coin:
+				return res.status(400).send('Please enter the required coin');
+			case !amount:
+				return res.status(400).send('Please enter the amount to send');
+			case !recipient:
+				return res.status(400).send('Please enter the recipient');
+			case !method:
+				return res.status(400).send('Are you sending to a username or address');
+		}
 
 		if (memo !== undefined && memo.length > 50)
 			return res.status(400).send("Memo can't be longer than 50 characters");
@@ -269,6 +275,8 @@ router.post('/send', Auth, async (req, res) => {
 		//check if the user exists.
 		const user = await User.findById(req.user);
 		if (!user) return res.status(400).send('Please login to send coins');
+
+		if (user.isActive === false) return res.status(400).send('Verify your account to send coins 🚀');
 
 		//check if the user has a wallet.
 		const wallet = await Wallet.findOne({ user: user }).populate('coins');
@@ -401,6 +409,8 @@ router.post('/convertPrice', Auth, async (req, res) => {
 		//get the logged in user.
 		const user = await User.findById(req.user).select('+wallet').populate('wallet');
 		if (!user) return res.status(400).send('Please log in');
+
+		if (user.isActive === false) return res.status(400).send('Verify your account to send coins 🚀');
 
 		const { coinFrom, amount, coinTo } = req.body;
 		if (!coinFrom) return res.status(400).send("Please enter the coin you're converting from");

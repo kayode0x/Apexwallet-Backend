@@ -23,7 +23,6 @@ router.get('/', Auth, async (req, res) => {
 				},
 			});
 		if (!wallet && user.isActive === false) return res.status(200).send(null);
-		if (!wallet && user.isActive === true) return res.status(200).send(null);
 		res.send(wallet);
 	} catch (error) {
 		res.status(500).send(error.message);
@@ -128,14 +127,6 @@ router.post('/send-cash', Auth, async (req, res) => {
 	} catch (error) {
 		res.status(500).send(error.message);
 	}
-});
-
-//request cash from another user.
-router.post('/request-cash', Auth, async (req, res) => {
-	//requires amount and the person to request from.
-	//use nodemailer to send a notification.
-	//create a notifications model that stores all notifications of the logged in user.
-	//try to allow auto payments with a single click
 });
 
 module.exports = router;

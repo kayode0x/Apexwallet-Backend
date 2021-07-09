@@ -17,7 +17,18 @@ router.post('/signup', async (req, res) => {
 	try {
 		//first check if the required fields are present
 		const { username, email, password } = req.body;
-		if (!username || !email || !password) return res.status(400).send('Please fill in the required fields');
+
+		//check for required fields
+		switch ((!username, !password, !email)) {
+			case !username && !password && !email:
+				return res.status(400).send('Please fill in the required fields');
+			case !username:
+				return res.status(400).send('Please enter your username');
+			case !password:
+				return res.status(400).send('Please enter your password');
+			case !email:
+				return res.status(400).send('Please enter your email address');
+		}
 
 		//check if the email exists
 		const existingEmail = await User.findOne({ email: req.body.email });
@@ -70,13 +81,13 @@ router.post('/signup', async (req, res) => {
             <p>Hi there ${req.body.username.toUpperCase()}!, welcome to Apex 🚀</p>
             <p>Before doing anything, we recommend verifying your account to use most of the features available.</p>
             <a href="${verificationURL}" clicktracking=off>Verify Account</a>
-            <p>Apex Wallet. 🚀</p>
+            <p>Apexwallet. 🚀</p>
         `;
 
 		try {
 			await sendEmail({
 				to: newUser.email,
-				subject: 'Welcome to Apex 🚀',
+				subject: 'Welcome to Apexwallet 🚀',
 				text: message,
 			});
 
@@ -100,6 +111,75 @@ router.post('/signup', async (req, res) => {
 	}
 });
 
+//log a user in
+router.post('/login', async (req, res) => {
+	try {
+		const { username, password } = req.body;
+
+		//check for username and password
+		switch ((!username, !password)) {
+			case !username && !password:
+				return res.status(400).send('Please enter your username and password');
+			case !username:
+				return res.status(400).send('Please enter your username');
+			case !password:
+				return res.status(400).send('Please enter your password');
+		}
+
+		//check if user exists
+		const user = await User.findOne({ username: username }).select('+password');
+		if (!user) return res.status(400).send('Invalid credentials provided');
+
+		//check if the password matches
+		const correctPassword = await bcrypt.compare(password, user.password);
+		if (!correctPassword) return res.status(400).send('Invalid credentials provided');
+
+		const token = await jwt.sign({ user: user._id }, process.env.JWT_SECRET);
+		res.status(200)
+			.cookie('jwt_token', token, {
+				httpOnly: true,
+				path: '/',
+				sameSite: 'none',
+				secure: true,
+			})
+			.send();
+	} catch (error) {
+		res.status(500).send(error.message);
+	}
+});
+
+//check if the user is logged in
+router.get('/loggedin', (req, res) => {
+	try {
+		const token = req.cookies.jwt_token;
+		if (!token) {
+			return res.send(false);
+		}
+		//verify the token
+		jwt.verify(token, process.env.JWT_SECRET);
+		res.send(true);
+	} catch (err) {
+		res.send(false);
+	}
+});
+
+//log a user out
+router.post('/logout', async (req, res) => {
+	try {
+		res.status(200)
+			.cookie('jwt_token', '', {
+				expiresIn: new Date(0),
+				httpOnly: true,
+				path: '/',
+				sameSite: 'none',
+				secure: true,
+			})
+			.send();
+	} catch (error) {
+		res.status(500).send(error.message);
+	}
+});
+
 //verify the user's email address
 router.post('/verify', async (req, res) => {
 	const verifyEmailToken = await crypto.createHash('sha256').update(req.body.token).digest('hex');
@@ -118,7 +198,6 @@ router.post('/verify', async (req, res) => {
 
 		//then change the user's status to active
 		user.isActive = true;
-		user.level = 2;
 
 		//void the token
 		user.verifyEmailToken = undefined;
@@ -223,7 +302,7 @@ router.post('/resend-verification-link', Auth, async (req, res) => {
             <p>Hi there ${user.username.toUpperCase()}!,</p>
             <p>Here's a new link to verify your account.</p>
             <a href="${verificationURL}" clicktracking=off>Verify Account</a>
-            <p>Apex Wallet. 🚀</p>
+            <p>Apexwallet 🚀</p>
         `;
 
 		try {
@@ -241,66 +320,6 @@ router.post('/resend-verification-link', Auth, async (req, res) => {
 
 			return res.status(500).send("Couldn't send the verification email");
 		}
-	} catch (error) {
-		res.status(500).send(error.message);
-	}
-});
-
-//log a user in
-router.post('/login', async (req, res) => {
-	try {
-		const { username, password } = req.body;
-		if (!username || !password) return res.status(400).send('Please fill in your username and password');
-
-		//check if user exists
-		const user = await User.findOne({ username: username }).select('+password');
-		if (!user) return res.status(400).send('Invalid credentials provided');
-
-		//check if the password matches
-		const correctPassword = await bcrypt.compare(password, user.password);
-		if (!correctPassword) return res.status(400).send('Invalid credentials provided');
-
-		const token = await jwt.sign({ user: user._id }, process.env.JWT_SECRET);
-		res.status(200)
-			.cookie('jwt_token', token, {
-				httpOnly: true,
-				path: '/',
-				sameSite: 'none',
-				secure: true,
-			})
-			.send();
-	} catch (error) {
-		res.status(500).send(error.message);
-	}
-});
-
-//check if the user is logged in
-router.get('/loggedin', (req, res) => {
-	try {
-		const token = req.cookies.jwt_token;
-		if (!token) {
-			return res.send(false);
-		}
-		//verify the token
-		jwt.verify(token, process.env.JWT_SECRET);
-		res.send(true);
-	} catch (err) {
-		res.send(false);
-	}
-});
-
-//log a user out
-router.post('/logout', async (req, res) => {
-	try {
-		res.status(200)
-			.cookie('jwt_token', '', {
-				expiresIn: new Date(0),
-				httpOnly: true,
-				path: '/',
-				sameSite: 'none',
-				secure: true,
-			})
-			.send();
 	} catch (error) {
 		res.status(500).send(error.message);
 	}

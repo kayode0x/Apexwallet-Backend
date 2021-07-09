@@ -59,17 +59,4 @@ router.post('/', Auth, async (req, res) => {
 	}
 });
 
-//delete broadcast message
-router.delete('/messages', Auth, async (req, res) => {
-	try {
-		
-		//load all the users in the database
-		await Message.deleteMany({ title: 'Coin conversion is live 🚀'});
-
-		return res.status(200).send("Done");
-	} catch (error) {
-		res.status(500).send(error.message);
-	}
-});
-
 module.exports = router;
