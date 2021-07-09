@@ -252,8 +252,8 @@ router.post('/send', Auth, async (req, res) => {
 	try {
 		//validate the input.
 		const { coin, amount, recipient, method, memo } = req.body;
-		
-		switch ((!coin, !amount, !recipient, !method)) {
+
+		switch ((coin, amount, recipient, method)) {
 			case !coin:
 				return res.status(400).send('Please enter the required coin');
 			case !amount:

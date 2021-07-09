@@ -19,7 +19,7 @@ router.post('/signup', async (req, res) => {
 		const { username, email, password } = req.body;
 
 		//check for required fields
-		switch ((!username, !password, !email)) {
+		switch ((username, password, email)) {
 			case !username && !password && !email:
 				return res.status(400).send('Please fill in the required fields');
 			case !username:
@@ -117,7 +117,7 @@ router.post('/login', async (req, res) => {
 		const { username, password } = req.body;
 
 		//check for username and password
-		switch ((!username, !password)) {
+		switch ((username, password)) {
 			case !username && !password:
 				return res.status(400).send('Please enter your username and password');
 			case !username:
