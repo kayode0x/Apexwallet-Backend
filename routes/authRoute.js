@@ -139,63 +139,61 @@ router.post('/verify', async (req, res) => {
 					secure: true,
 				})
 				.send('Account verified 🚀');
-		}
+		} else {
+			//create a new transaction based on the free cash
+			const transaction = await new Transaction({
+				coin: 'USD',
+				amount: 500,
+				type: 'Free',
+				value: 500,
+				name: 'Free',
+			});
 
-		//create a new transaction based on the free cash
-		const transaction = await new Transaction({
-			coin: 'USD',
-			amount: 500,
-			type: 'Free',
-			value: 500,
-			name: 'Free',
-		});
+			//save the transaction
+			const newTransaction = await transaction.save();
 
-		//save the transaction
-		const newTransaction = await transaction.save();
+			//finally create a wallet for the user
+			const newWallet = await new Wallet({
+				user: user._id,
+				transactions: [newTransaction],
+			});
+			//save the wallet with the new data
+			const savedWallet = await newWallet.save();
 
-		//finally create a wallet for the user
-		const newWallet = await new Wallet({
-			user: user._id,
-			transactions: [newTransaction],
-		});
-		//save the wallet with the new data
-		const savedWallet = await newWallet.save();
-
-		//on creating a wallet, auto add all the coins we support into the wallet.
-		async function addCoin(coin) {
-
-			await savedWallet.coins.push(
-				await new Coin({
+			//on creating a wallet, auto add all the coins we support into the wallet.
+			async function addCoin(coin) {
+				const newCoin = await new Coin({
 					wallet: savedWallet,
 					coin: coin,
 					balance: 0,
-				}).save()
-			);
-			await savedWallet.save();
+				}).save();
+
+				savedWallet.coins.push(newCoin);
+				savedWallet.save();
+			}
+
+			//call the function to add the coins to the wallet.
+			await supportedCoins.forEach(addCoin);
+			savedWallet.save();
+
+			//also update the user
+			await User.findOneAndUpdate({ _id: user._id }, { wallet: savedWallet }, { new: true });
+			await user.save();
+
+			//update the user's level to max
+			user.level = 3;
+			await user.save();
+
+			const token = await jwt.sign({ user: user._id }, process.env.JWT_SECRET);
+			res.status(200)
+				.cookie('jwt_token', token, {
+					httpOnly: true,
+					path: '/',
+					sameSite: 'none',
+					secure: true,
+				})
+				.send('Account verified 🚀');
 		}
-
-		//call the function to add the coins to the wallet.
-		for (let i = 0; i < supportedCoins.length; i++) {
-			addCoin(supportedCoins[i]);
-		}
-
-		//also update the user
-		await User.findOneAndUpdate({ _id: user._id }, { wallet: savedWallet }, { new: true });
-		await user.save();
-
-		//update the user's level to max
-		user.level = 3;
-		await user.save();
-
-		const token = await jwt.sign({ user: user._id }, process.env.JWT_SECRET);
-		res.status(200)
-			.cookie('jwt_token', token, {
-				httpOnly: true,
-				path: '/',
-				sameSite: 'none',
-				secure: true,
-			})
-			.send('Account verified 🚀');
 	} catch (error) {
 		res.status(500).send(error.message);
 	}
