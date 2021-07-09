@@ -175,7 +175,7 @@ router.post('/verify', async (req, res) => {
 		}
 
 		//call the function to add the coins to the wallet.
-		await supportedCoins.forEach(addCoin);
+		await supportedCoins.map(coin => addCoin(coin));
 
 		//also update the user
 		await User.findOneAndUpdate({ _id: user._id }, { wallet: savedWallet }, { new: true });
