@@ -161,10 +161,6 @@ router.post('/verify', async (req, res) => {
 		//save the wallet with the new data
 		const savedWallet = await newWallet.save();
 
-		//also update the user
-		await User.findOneAndUpdate({ _id: user._id }, { wallet: savedWallet }, { new: true });
-		await user.save();
-
 		//on creating a wallet, auto add all the coins we support into the wallet.
 		async function addCoin(coin) {
 			const newCoins = await new Coin({
@@ -180,6 +176,10 @@ router.post('/verify', async (req, res) => {
 
 		//call the function to add the coins to the wallet.
 		await supportedCoins.forEach(addCoin);
+
+		//also update the user
+		await User.findOneAndUpdate({ _id: user._id }, { wallet: savedWallet }, { new: true });
+		await user.save();
 
 		//update the user's level to max
 		user.level = 3;
