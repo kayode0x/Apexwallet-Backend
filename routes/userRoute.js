@@ -21,6 +21,7 @@ router.put('/image', Auth, upload, async (req, res) => {
 		const user = await User.findById(req.user);
 		if (!user) return res.status(400).send('Please log in to change your display picture');
 
+		//check the file size
 		if (req.file) {
 			if (req.file.size > 3145728)
 				return res.status(400).send('Image size is too large, max size allowed is 3MB');
@@ -205,20 +206,5 @@ router.put('/card-design', Auth, async (req, res) => {
 		res.status(500).send(error.message);
 	}
 });
-
-// router.post('/all', Auth, async (req, res) => {
-// 	try {
-// 		const users = await User.find({});
-// 		const addField = async (user) => {
-// 			let level = 1;
-// 			user.level = level;
-// 			await user.save();
-// 		};
-// 		users.forEach((user) => addField(user));
-// 		return res.status(200).send(users);
-// 	} catch (error) {
-// 		res.status(500).send(error.message);
-// 	}
-// });
 
 module.exports = router;
