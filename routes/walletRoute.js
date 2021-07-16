@@ -13,7 +13,7 @@ router.get('/', Auth, async (req, res) => {
 		if (!user) return res.status(400).send('Please log in');
 
 		const wallet = await Wallet.findOne({ user: req.user })
-			.populate('user coins')
+			.populate('coins')
 			.populate({
 				path: 'transactions',
 				options: {

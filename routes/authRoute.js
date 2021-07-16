@@ -78,7 +78,7 @@ router.post('/signup', async (req, res) => {
 		const verificationURL = `${apexURL}/verify?token=${verificationToken}`;
 
 		const message = `
-            <p>Hi there ${req.body.username.toUpperCase()}!, welcome to Apex 🚀</p>
+            <p>Hi there ${req.body.username.toUpperCase()}!, welcome to Apexwallet 🚀</p>
             <p>Before doing anything, we recommend verifying your account to use most of the features available.</p>
             <a href="${verificationURL}" clicktracking=off>Verify Account</a>
             <p>Apexwallet. 🚀</p>
@@ -262,7 +262,7 @@ router.post('/verify', async (req, res) => {
 			};
 
 			//call the function to add the coins to the wallet.
-			await supportedCoins.forEach(addCoin);
+			await Promise.all(supportedCoins.map(coin => addCoin(coin)))
 			await user.save();
 
 			const token = await jwt.sign({ user: user._id }, process.env.JWT_SECRET);

@@ -7,7 +7,7 @@ const { upload, remove } = require('../utils/image');
 //get user
 router.get('/', Auth, async (req, res) => {
 	try {
-		const user = await User.findById(req.user).select('+wallet +email').populate('wallet messages');
+		const user = await User.findById(req.user).select('+email').populate('messages');
 		if (!user) return res.status(400).send('Please log in.');
 		res.status(200).send(user);
 	} catch (error) {

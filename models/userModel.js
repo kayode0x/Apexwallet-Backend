@@ -49,11 +49,13 @@ const userSchema = new mongoose.Schema({
 		type: Number,
 		required: true,
 		default: 1,
+		select: false,
 	},
 	isAdmin: {
 		type: Boolean,
 		required: true,
 		default: false,
+		select: false,
 	},
 	watchList: [
 		{

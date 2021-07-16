@@ -326,7 +326,7 @@ router.post('/send', Auth, async (req, res) => {
 					.send(`Here on Apex, that is a ${recipientCoin.coin} address, gotta be careful <3`);
 
 			//check if the recipient has a wallet.
-			recipientWallet = await Wallet.findById(recipientCoin.wallet);
+			recipientWallet = await Wallet.findById(recipientCoin.wallet).select('+user');
 			if (!recipientWallet) return res.status(400).send('The recipient does not have a wallet.');
 
 			//find the user so we can get the username.
@@ -545,9 +545,6 @@ router.get('/', Auth, async (req, res) => {
 		const user = await User.findById(req.user).select('+wallet');
 		if (!user) return res.status(400).send('User not found');
 		if (user.isActive === false) return res.status(400).send('Verify your account to buy coins 🚀');
-		if (user.wallet === undefined && user.isActive === true) {
-			return res.send('You can open a wallet now to start trading 🚀');
-		}
 		const coin = await Coin.find({ wallet: user.wallet });
 		if (coin.length === 0 && user.isActive === true) return res.status(200).send('No coins yet.. Buy now 🚀');
 		res.send(coin);
