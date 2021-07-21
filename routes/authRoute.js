@@ -184,7 +184,7 @@ router.post("/login", async (req, res) => {
 });
 
 //check if the user is logged in
-router.get("/loggedin", (req, res) => {
+router.get("/loggedin", async (req, res) => {
   try {
     const token = req.cookies.accessToken;
     if (!token) {
@@ -193,8 +193,37 @@ router.get("/loggedin", (req, res) => {
     //verify the token
     jwt.verify(token, process.env.JWT_SECRET);
     res.send(true);
-  } catch (err) {
-    res.send(false);
+  } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      try {
+        const { refreshToken } = req.cookies;
+        if (!refreshToken) return res.status(400).send("Please Login");
+
+        const verifiedRefresh = jwt.verify(
+          refreshToken,
+          process.env.JWT_SECRET
+        );
+        //generate a new access token
+        const { accessToken } = await tokens(verifiedRefresh.user);
+
+        res.status(200).cookie("accessToken", accessToken, {
+          maxAge: 300000, // 5 minutes
+          httpOnly: true,
+          path: "/",
+          sameSite: "none",
+          secure: true,
+        });
+
+        const verified = jwt.verify(accessToken, process.env.JWT_SECRET);
+        req.user = verified.user;
+
+        return res.send(true);
+      } catch (error) {
+        return res.send(false);
+      }
+    }
+
+    return res.send(false);
   }
 });
 

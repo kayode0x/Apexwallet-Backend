@@ -25,7 +25,7 @@ async function Auth(req, res, next) {
         const { accessToken } = await tokens(verifiedRefresh.user);
 
         res.status(200).cookie("accessToken", accessToken, {
-          expiresIn: "1s",
+          expiresIn: "10m",
           httpOnly: true,
           path: "/",
           sameSite: "none",
