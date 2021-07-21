@@ -3,7 +3,6 @@ const tokens = require("../middleware/tokens");
 
 async function Auth(req, res, next) {
   try {
-    //first check if there is a cookie present
     const { accessToken, refreshToken } = req.cookies;
     if (!accessToken) return res.status(401).send("Please Login");
 
