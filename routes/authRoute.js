@@ -109,7 +109,7 @@ router.post("/signup", async (req, res) => {
       res
         .status(200)
         .cookie("accessToken", accessToken, {
-          maxAge: 300000, // 5 minutes
+          maxAge: 600000, // 10 minutes
           httpOnly: true,
           path: "/",
           sameSite: "none",
@@ -164,7 +164,7 @@ router.post("/login", async (req, res) => {
     res
       .status(200)
       .cookie("accessToken", accessToken, {
-        maxAge: 300000, // 5 minutes
+        maxAge: 600000, // 10 minutes
         httpOnly: true,
         path: "/",
         sameSite: "none",
@@ -217,7 +217,7 @@ router.post("/refresh", async (req, res) => {
     res
       .status(200)
       .cookie("accessToken", accessToken, {
-        maxAge: 300000, // 5 minutes
+        maxAge: 600000, // 10 minutes
         httpOnly: true,
         path: "/",
         sameSite: "none",
@@ -292,7 +292,7 @@ router.post("/verify", async (req, res) => {
       res
         .status(200)
         .cookie("accessToken", accessToken, {
-          maxAge: 300000, // 5 minutes
+          maxAge: 600000, // 10 minutes
           httpOnly: true,
           path: "/",
           sameSite: "none",
@@ -358,7 +358,7 @@ router.post("/verify", async (req, res) => {
       res
         .status(200)
         .cookie("accessToken", accessToken, {
-          maxAge: 300000, // 5 minutes
+          maxAge: 600000, // 10 minutes
           httpOnly: true,
           path: "/",
           sameSite: "none",
