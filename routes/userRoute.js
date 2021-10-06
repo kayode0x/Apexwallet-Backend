@@ -41,7 +41,7 @@ router.put('/image', Auth, upload, async (req, res) => {
 				//get the image key from the user's image
 				const key = user.image.split('/')[3];
 
-				// call the remove image method
+				// delete the old image to prevent overpopulating the database.
 				await remove(key);
 
 				user.image = '';
