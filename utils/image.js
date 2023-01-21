@@ -23,7 +23,6 @@ const fileFilter = async (req, file, cb) => {
 const upload = multer({
 	fileFilter,
 	onError: function (err, next) {
-		console.log('error', err);
 		next(err);
 	},
 	storage: multerS3({
@@ -46,9 +45,6 @@ const remove = (key) => {
 			Bucket: bucketName,
 			Key: key,
 		},
-		(err, data) => {
-			console.log(err, data);
-		}
 	);
 };
 

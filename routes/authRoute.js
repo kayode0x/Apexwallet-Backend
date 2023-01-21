@@ -107,7 +107,7 @@ router.post("/signup", async (req, res) => {
       });
 
       res
-        .status(200)
+        .status(201)
         .cookie("accessToken", accessToken, {
           maxAge: 600000, // 10 minutes
           httpOnly: true,
@@ -208,7 +208,6 @@ router.post("/refresh", async (req, res) => {
     //verify the token
     const verified = jwt.verify(refreshToken, process.env.JWT_SECRET);
     
-    console.log(verified);
     if (verified.exp * 1000 <= Date.now()) {
       return res.status(400).send("Your token has expired");
     }
